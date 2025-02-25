@@ -1,0 +1,6 @@
+# Backend build artifacts
+/backend/target/
+/backend/*.jar
+
+# OS generated files
+.DS_Store
