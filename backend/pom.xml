@@ -13,14 +13,13 @@
    <parent>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-parent</artifactId>
-      <version>2.7.8</version>
+      <version>3.1.6</version>
       <relativePath/>
    </parent>
    <properties>
       <java.version>21</java.version>
    </properties>
    <dependencies>
-      <!-- Spring Boot Web & JPA -->
       <dependency>
          <groupId>org.springframework.boot</groupId>
          <artifactId>spring-boot-starter-web</artifactId>
@@ -29,24 +28,20 @@
          <groupId>org.springframework.boot</groupId>
          <artifactId>spring-boot-starter-data-jpa</artifactId>
       </dependency>
-      <!-- Spring Security -->
       <dependency>
          <groupId>org.springframework.boot</groupId>
          <artifactId>spring-boot-starter-security</artifactId>
       </dependency>
-      <!-- PostgreSQL Driver -->
       <dependency>
          <groupId>org.postgresql</groupId>
          <artifactId>postgresql</artifactId>
          <scope>runtime</scope>
       </dependency>
-      <!-- Lombok (optional for reducing boilerplate code) -->
       <dependency>
          <groupId>org.projectlombok</groupId>
          <artifactId>lombok</artifactId>
          <optional>true</optional>
       </dependency>
-      <!-- Testing -->
       <dependency>
          <groupId>org.springframework.boot</groupId>
          <artifactId>spring-boot-starter-test</artifactId>
