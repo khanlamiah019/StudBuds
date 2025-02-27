@@ -1,5 +1,6 @@
 package com.studbuds.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
@@ -9,17 +10,21 @@ public class User {
    @Id
    @GeneratedValue(strategy = GenerationType.IDENTITY)
    private Long id;
-   
+
    @Column(unique = true, nullable = false)
    private String email;
-   
+
    @Column(nullable = false)
    private String password;
-   
+
    private String major;
    private String year;
    private LocalDateTime createdAt = LocalDateTime.now();
-   
+
+   @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+   @JsonManagedReference
+   private Preference preference;
+
    // Getters and setters
    public Long getId() { return id; }
    public void setId(Long id) { this.id = id; }
@@ -33,4 +38,6 @@ public class User {
    public void setYear(String year) { this.year = year; }
    public LocalDateTime getCreatedAt() { return createdAt; }
    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+   public Preference getPreference() { return preference; }
+   public void setPreference(Preference preference) { this.preference = preference; }
 }

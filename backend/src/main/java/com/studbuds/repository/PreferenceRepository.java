@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface PreferenceRepository extends JpaRepository<Preference, Long> {
-   Optional<Preference> findByUser(User user);
+    Optional<Preference> findByUser(User user);
 }

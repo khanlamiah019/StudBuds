@@ -12,17 +12,17 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    
+
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private PasswordEncoder passwordEncoder;
-    
+
     @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@RequestBody SignupRequest signupRequest) {
+    public ResponseEntity<?> signUp(@RequestBody SignupRequest signupRequest) {
         if (userRepository.findByEmail(signupRequest.getEmail()).isPresent()) {
-            return ResponseEntity.badRequest().body("Email already in use");
+            return ResponseEntity.badRequest().body("Email already in use.");
         }
         User user = new User();
         user.setEmail(signupRequest.getEmail());
@@ -30,12 +30,12 @@ public class AuthController {
         user.setMajor(signupRequest.getMajor());
         user.setYear(signupRequest.getYear());
         userRepository.save(user);
-        return ResponseEntity.ok("User registered successfully");
+        return ResponseEntity.ok("User registered successfully.");
     }
-    
+
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
-        // For demo purposes, return a dummy response.
-        return ResponseEntity.ok("User logged in (dummy response)");
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        // For demonstration purposes, we return a dummy response.
+        return ResponseEntity.ok("Login successful (dummy response).");
     }
 }

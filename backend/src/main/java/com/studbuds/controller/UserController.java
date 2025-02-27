@@ -13,22 +13,23 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
+
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private PreferenceRepository preferenceRepository;
-    
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getUser(@PathVariable Long id) {
-        Optional<User> userOpt = userRepository.findById(id);
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<?> getUserDetails(@PathVariable Long userId) {
+        Optional<User> userOpt = userRepository.findById(userId);
         return userOpt.map(ResponseEntity::ok)
                       .orElseGet(() -> ResponseEntity.notFound().build());
     }
-    
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User updatedUser) {
-        Optional<User> userOpt = userRepository.findById(id);
+
+    @PutMapping("/{userId}")
+    public ResponseEntity<?> updateUser(@PathVariable Long userId, @RequestBody User updatedUser) {
+        Optional<User> userOpt = userRepository.findById(userId);
         if (!userOpt.isPresent()) {
             return ResponseEntity.notFound().build();
         }
@@ -38,14 +39,30 @@ public class UserController {
         userRepository.save(user);
         return ResponseEntity.ok(user);
     }
-    
+
     @PostMapping("/{userId}/preference")
-    public ResponseEntity<?> updatePreference(@PathVariable Long userId, @RequestBody Preference preference) {
+    public ResponseEntity<?> updatePreference(@PathVariable Long userId, @RequestBody Preference preferenceData) {
         Optional<User> userOpt = userRepository.findById(userId);
         if (!userOpt.isPresent()) {
             return ResponseEntity.notFound().build();
         }
-        preference.setUser(userOpt.get());
+        User user = userOpt.get();
+        Optional<Preference> existingPreferenceOpt = preferenceRepository.findByUser(user);
+        Preference preference;
+        if (existingPreferenceOpt.isPresent()) {
+            // Update existing preference
+            preference = existingPreferenceOpt.get();
+            preference.setAvailableDays(preferenceData.getAvailableDays());
+            preference.setSubjectsToLearn(preferenceData.getSubjectsToLearn());
+            preference.setSubjectsToTeach(preferenceData.getSubjectsToTeach());
+        } else {
+            // Create new preference and associate with user
+            preference = new Preference();
+            preference.setUser(user);
+            preference.setAvailableDays(preferenceData.getAvailableDays());
+            preference.setSubjectsToLearn(preferenceData.getSubjectsToLearn());
+            preference.setSubjectsToTeach(preferenceData.getSubjectsToTeach());
+        }
         Preference savedPreference = preferenceRepository.save(preference);
         return ResponseEntity.ok(savedPreference);
     }
