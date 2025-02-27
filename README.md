@@ -76,7 +76,7 @@ Step 3: Test the Endpoints Using Postman
   "email": "student@example.com",
   "password": "securePassword",
   "major": "Computer Science",
-  "year": "Freshman"
+  "year": "2022
 }
 Action: Click Send and verify you receive a response confirming that the user was registered.
 
