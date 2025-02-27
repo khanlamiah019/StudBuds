@@ -11,7 +11,7 @@ Prerequisites:
 Project Directory Structure:  
 studbuds/   
 └── backend/    
-    ├── pom.xml 
+    ├── pom.xml    
     ├── Dockerfile    
     └── src/    
         └── main/    
