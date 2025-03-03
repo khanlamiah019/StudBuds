@@ -1,3 +1,6 @@
+package com.studbuds.payload;
+
+
 // DeleteAccountRequest class for user account deletion
 public class DeleteAccountRequest {
    private String email;

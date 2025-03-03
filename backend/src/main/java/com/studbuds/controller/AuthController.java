@@ -36,6 +36,6 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         // For demonstration purposes, we return a dummy response.
-        return ResponseEntity.ok("Login successful (dummy response).");
+        return ResponseEntity.ok("Login successful.");
     }
 }

@@ -19,12 +19,6 @@ public class TestController {
     @Autowired
     private PreferenceRepository preferenceRepository;
 
-    // A simple test endpoint
-    @GetMapping("/hello")
-    public String hello() {
-        return "Hello, this is a test endpoint.";
-    }
-
     // Endpoint to retrieve all users
     @GetMapping("/users")
     public List<User> getAllUsers() {
