@@ -9,90 +9,163 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Main service that computes match scores between users based on:
+ *  - Major & Year (custom query for narrowing)
+ *  - Availability overlap
+ *  - Teaching/Learning synergy
+ *  - Shared classes
+ *  - Weighted scoring system
+ */
 @Service
 public class MatchingService {
 
     @Autowired
     private PreferenceRepository preferenceRepository;
 
+    // ========== Weight Constants ========== //
+    private static final double AVAILABILITY_WEIGHT     = 2.0;  // Shared availability is important
+    private static final double PARTIAL_SYNERGY_WEIGHT  = 0.5;  // One-way teaching
+    private static final double BOTH_SYNERGY_BONUS      = 0.5;  // Extra bonus if two-way teaching
+    private static final double MATCH_THRESHOLD         = 1.0;  // Minimal score for a valid match
+
     /**
-     * Finds matches for the given current user.
-     * A match is valid if:
-     *   - There is at least one common available day
-     *   - And at least one subject match (current user's subjectsToTeach intersect with the other's subjectsToLearn,
-     *     or current user's subjectsToLearn intersect with the other's subjectsToTeach)
-     * The match score is the sum of common days and common subjects.
-     * Returns a list of MatchingResultDTO sorted by match score in descending order.
-     * If no valid matches are found, returns all other users in random order with a score of 0.
+     * 1) Query for same major/year candidates.
+     * 2) If none found, fallback to all except current user.
+     * 3) Compute scores and sort by descending match score.
      */
     public List<MatchingResultDTO> findMatches(User currentUser) {
+        // Current user's preference
         Preference currentPref = currentUser.getPreference();
         if (currentPref == null) {
+            // If no preference, no matches
             return Collections.emptyList();
         }
 
-        Set<String> currentDays = parseCSV(currentPref.getAvailableDays());
-        Set<String> currentTeach = parseCSV(currentPref.getSubjectsToTeach());
-        Set<String> currentLearn = parseCSV(currentPref.getSubjectsToLearn());
+        // Parse current user's preference fields into sets
+        Set<String> currentDays    = parseCSV(currentPref.getAvailableDays());
+        Set<String> currentTeach   = parseCSV(currentPref.getSubjectsToTeach());
+        Set<String> currentLearn   = parseCSV(currentPref.getSubjectsToLearn());
 
-        List<Preference> allPrefs = preferenceRepository.findAll();
-        Map<Long, MatchingResultDTO> uniqueMatches = new HashMap<>();
+        // 1) Narrow query
+        List<Preference> narrowCandidates = preferenceRepository.findSimilarPreferences(
+                currentUser.getMajor(),
+                currentUser.getYear(),
+                currentUser.getId()
+        );
 
-        for (Preference otherPref : allPrefs) {
-            if (otherPref.getUser().getId().equals(currentUser.getId())) {
+        // Compute matches for the narrow set
+        List<MatchingResultDTO> narrowResults = computeMatches(
+                currentUser, currentDays, currentTeach, currentLearn, narrowCandidates
+        );
+
+        // If we found some results, sort them and return
+        if (!narrowResults.isEmpty()) {
+            narrowResults.sort((a, b) -> Double.compare(b.getMatchScore(), a.getMatchScore()));
+            return narrowResults;
+        }
+
+        // 2) Fallback query
+        List<Preference> fallbackCandidates = preferenceRepository.findAll().stream()
+            .filter(p -> !p.getUser().getId().equals(currentUser.getId()))
+            .collect(Collectors.toList());
+        List<MatchingResultDTO> fallbackResults = computeMatches(
+                currentUser, currentDays, currentTeach, currentLearn, fallbackCandidates
+        );
+
+        // Sort or return empty
+        if (fallbackResults.isEmpty()) {
+            return Collections.emptyList();
+        } else {
+            fallbackResults.sort((a, b) -> Double.compare(b.getMatchScore(), a.getMatchScore()));
+            return fallbackResults;
+        }
+    }
+
+    /**
+     * Core matching logic:
+     *  - Check availability overlap (optional but weighted)
+     *  - Check teaching synergy (partial or two-way)
+     *  - Check if they share classes (strong or weak bonus)
+     */
+    private List<MatchingResultDTO> computeMatches(
+            User currentUser,
+            Set<String> currentDays,
+            Set<String> currentTeach,
+            Set<String> currentLearn,
+            List<Preference> candidates
+    ) {
+        List<MatchingResultDTO> results = new ArrayList<>();
+
+        for (Preference otherPref : candidates) {
+            User otherUser = otherPref.getUser();
+            if (otherUser.getId().equals(currentUser.getId())) {
+                // skip if it's the same user (edge case)
                 continue;
             }
-            Set<String> otherDays = parseCSV(otherPref.getAvailableDays());
-            Set<String> otherTeach = parseCSV(otherPref.getSubjectsToTeach());
-            Set<String> otherLearn = parseCSV(otherPref.getSubjectsToLearn());
 
-            // Compute common available days.
+            // Parse candidate's fields
+            Set<String> otherDays    = parseCSV(otherPref.getAvailableDays());
+            Set<String> otherTeach   = parseCSV(otherPref.getSubjectsToTeach());
+            Set<String> otherLearn   = parseCSV(otherPref.getSubjectsToLearn());
+
+            // Availability intersection
             Set<String> commonDays = new HashSet<>(currentDays);
             commonDays.retainAll(otherDays);
 
-            // Compute common subjects (either currentTeach vs otherLearn or currentLearn vs otherTeach).
-            Set<String> commonSubjects = new HashSet<>(currentTeach);
-            commonSubjects.retainAll(otherLearn);
-            Set<String> commonSubjects2 = new HashSet<>(currentLearn);
-            commonSubjects2.retainAll(otherTeach);
-            commonSubjects.addAll(commonSubjects2);
+            // Teaching synergy: 
+            //  p1TeachesP2 = intersection of currentTeach & otherLearn
+            //  p2TeachesP1 = intersection of currentLearn & otherTeach
+            Set<String> p1TeachesP2 = new HashSet<>(currentTeach);
+            p1TeachesP2.retainAll(otherLearn);
 
-            if (!commonDays.isEmpty() && !commonSubjects.isEmpty()) {
-                double score = commonDays.size() + commonSubjects.size();
-                Long otherUserId = otherPref.getUser().getId();
-                if (!uniqueMatches.containsKey(otherUserId) || uniqueMatches.get(otherUserId).getMatchScore() < score) {
-                    MatchingResultDTO dto = new MatchingResultDTO();
-                    dto.setUser(otherPref.getUser());
-                    dto.setCommonDays(new ArrayList<>(commonDays));
-                    dto.setCommonSubjects(new ArrayList<>(commonSubjects));
-                    dto.setMatchScore(score);
-                    uniqueMatches.put(otherUserId, dto);
-                }
+            Set<String> p2TeachesP1 = new HashSet<>(currentLearn);
+            p2TeachesP1.retainAll(otherTeach);
+            double score = 0.0;
+            // If they share at least some availability, add AVAILABILITY_WEIGHT
+            if (!commonDays.isEmpty()) {
+                score += AVAILABILITY_WEIGHT;
             }
+
+            // Partial synergy
+            if (!p1TeachesP2.isEmpty()) {
+                score += PARTIAL_SYNERGY_WEIGHT;
+            }
+            if (!p2TeachesP1.isEmpty()) {
+                score += PARTIAL_SYNERGY_WEIGHT;
+            }
+            // Two-way synergy bonus
+            if (!p1TeachesP2.isEmpty() && !p2TeachesP1.isEmpty()) {
+                score += BOTH_SYNERGY_BONUS;
+            }
+
+
+            // Filter out matches below threshold
+            if (score < MATCH_THRESHOLD) {
+                continue;
+            }
+
+            // Build the result DTO
+            MatchingResultDTO dto = new MatchingResultDTO();
+            dto.setUser(otherUser);
+            dto.setCommonDays(new ArrayList<>(commonDays));
+            dto.setMatchScore(score);
+
+            // Combine synergy subjects
+            Set<String> synergySubjects = new HashSet<>(p1TeachesP2);
+            synergySubjects.addAll(p2TeachesP1);
+            dto.setCommonSubjects(new ArrayList<>(synergySubjects));
+
+
+            results.add(dto);
         }
 
-        List<MatchingResultDTO> results = new ArrayList<>(uniqueMatches.values());
-        if (results.isEmpty()) {
-            // If no valid matches, return all other users in random order with score 0.
-            List<Preference> randomPrefs = allPrefs.stream()
-                    .filter(p -> !p.getUser().getId().equals(currentUser.getId()))
-                    .collect(Collectors.toList());
-            Collections.shuffle(randomPrefs);
-            for (Preference p : randomPrefs) {
-                MatchingResultDTO dto = new MatchingResultDTO();
-                dto.setUser(p.getUser());
-                dto.setCommonDays(Collections.emptyList());
-                dto.setCommonSubjects(Collections.emptyList());
-                dto.setMatchScore(0);
-                results.add(dto);
-            }
-        } else {
-            results.sort((a, b) -> Double.compare(b.getMatchScore(), a.getMatchScore()));
-        }
         return results;
     }
 
-    // Helper method to parse a CSV string into a set of lower-case, trimmed strings.
+    /**
+     * Utility method to parse a CSV string ("a,b,c") into a set of lower-case, trimmed strings.
+     */
     private Set<String> parseCSV(String csv) {
         if (csv == null || csv.trim().isEmpty()) {
             return Collections.emptySet();
@@ -104,7 +177,9 @@ public class MatchingService {
                      .collect(Collectors.toSet());
     }
 
-    // DTO for matching results.
+    /**
+     * DTO for returning matching results.
+     */
     public static class MatchingResultDTO {
         private User user;
         private List<String> commonDays;
