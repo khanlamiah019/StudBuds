@@ -8,23 +8,24 @@ function MatchList({ userId }) {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  // Array of ASCII art images (animals) - you can expand or change these
-  const asciiAnimals = [
-    ` /\\_/\\  
-( o.o )
- > ^ <`, // Cat
-    `  /\\_/\\
- ( o.o )
-  > ^ <`, // Dog (similar styling)
-    `  /  \\~~~/  \\
- (    ..    )
-  \\__-__-/`, // Elephant
-    ` (\\_/)
- ( •_•)
- / >🥕`  // Rabbit
-  ];
+  // Mapping of majors to cute animal emojis.
+  const cuteAnimalEmojiMap = {
+    "Electrical Engineering": "🐭",
+    "Mechanical Engineering": "🐱",
+    "Civil Engineering": "🐶",
+    "Chemical Engineering": "🐹",
+    "General Engineering": "🐻",
+    "Computer Science": "🦊"
+  };
 
-  // Increase ASCII art size for visual impact.
+  // Returns a cute animal emoji based on the user's major.
+  const getEngineerEmoji = (user) => {
+    if (user.major && cuteAnimalEmojiMap[user.major]) {
+      return cuteAnimalEmojiMap[user.major];
+    }
+    return "🐱"; // default emoji
+  };
+
   const asciiStyle = {
     fontFamily: 'monospace',
     fontSize: '2.5rem',
@@ -33,12 +34,17 @@ function MatchList({ userId }) {
     margin: 0
   };
 
-  // Returns an ASCII art image based on the user id.
+  // For fallback ASCII art, if needed.
+  const asciiAnimals = [
+    ` /\\_/\\  
+( o.o )
+ > ^ <`
+  ];
+
   const getAsciiArt = (userId) => {
     return asciiAnimals[userId % asciiAnimals.length];
   };
 
-  // Fetch matches from backend.
   const fetchMatches = () => {
     axios.get(`/api/matches/find/${userId}`)
       .then(response => {
@@ -55,12 +61,11 @@ function MatchList({ userId }) {
     if (userId) fetchMatches();
   }, [userId]);
 
-  // Get username from the user object.
+  // Get username using the "name" field if available.
   const getUsername = (user) => {
     return user.name && user.name.trim() !== "" ? user.name : user.email.split('@')[0];
   };
 
-  // When a swipe occurs.
   const onSwipe = (direction, matchUserId) => {
     if (direction === 'right') {
       axios.post(`/api/matches/swipe?user1Id=${userId}&user2Id=${matchUserId}`)
@@ -79,11 +84,12 @@ function MatchList({ userId }) {
     console.log(`Card for user ${matchUserId} left the screen`);
   };
 
-  // Styling for the overall background and container.
+  // Styling
   const pageStyle = {
     background: 'linear-gradient(135deg, #e0f7fa, #ffffff)',
     minHeight: '100vh',
-    paddingTop: '2rem'
+    paddingTop: '2rem',
+    textAlign: 'center'
   };
 
   const headerStyle = {
@@ -92,7 +98,6 @@ function MatchList({ userId }) {
     color: '#2c6e6a'
   };
 
-  // Container for the Tinder cards.
   const cardContainerStyle = {
     position: 'relative',
     width: '320px',
@@ -100,7 +105,6 @@ function MatchList({ userId }) {
     margin: '0 auto'
   };
 
-  // Card styling with a translucent overlay for details.
   const cardStyle = {
     position: 'absolute',
     backgroundColor: '#ffffff',
@@ -113,7 +117,6 @@ function MatchList({ userId }) {
     overflow: 'hidden'
   };
 
-  // Image container centers the ASCII art.
   const imageContainerStyle = {
     flex: '1 1 auto',
     display: 'flex',
@@ -122,12 +125,21 @@ function MatchList({ userId }) {
     padding: '1rem'
   };
 
-  // Text container for match details with a semi-transparent overlay.
+  // Text container style with white text.
   const textContainerStyle = {
+    marginTop: 'auto',
+    textAlign: 'left',
     backgroundColor: 'rgba(0,0,0,0.5)',
-    color: '#fff',
     padding: '1rem',
-    textAlign: 'left'
+    color: '#ffffff'
+  };
+
+  const usernameStyle = {
+    fontSize: '1.8rem',
+    fontWeight: 'bold',
+    marginBottom: '0.5rem',
+    color: '#ffffff',
+    WebkitTextStroke: '1px #5ccdc1'
   };
 
   const buttonStyle = {
@@ -147,7 +159,7 @@ function MatchList({ userId }) {
       <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
         <button style={buttonStyle} onClick={() => navigate('/update')}>Update Preference</button>
       </div>
-      {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+      {error && <p style={{ color: 'blue', textAlign: 'center' }}>{error}</p>}
       <div style={cardContainerStyle}>
         {matches && matches.length > 0 ? (
           matches.map((match) => (
@@ -159,12 +171,12 @@ function MatchList({ userId }) {
             >
               <div style={cardStyle}>
                 <div style={imageContainerStyle}>
-                  <pre style={asciiStyle}>
-                    {getAsciiArt(match.user.id)}
-                  </pre>
+                  <span style={{ fontSize: '5rem' }}>
+                    {getEngineerEmoji(match.user)}
+                  </span>
                 </div>
                 <div style={textContainerStyle}>
-                  <h3>{getUsername(match.user)}</h3>
+                  <h3 style={usernameStyle}>{getUsername(match.user)}</h3>
                   <p><strong>Common Days:</strong> {match.commonDays.join(', ')}</p>
                   <p><strong>Common Subjects:</strong> {match.commonSubjects.join(', ')}</p>
                 </div>
