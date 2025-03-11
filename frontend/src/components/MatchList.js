@@ -26,25 +26,6 @@ function MatchList({ userId }) {
     return "🐱"; // default emoji
   };
 
-  const asciiStyle = {
-    fontFamily: 'monospace',
-    fontSize: '2.5rem',
-    whiteSpace: 'pre',
-    textAlign: 'center',
-    margin: 0
-  };
-
-  // For fallback ASCII art, if needed.
-  const asciiAnimals = [
-    ` /\\_/\\  
-( o.o )
- > ^ <`
-  ];
-
-  const getAsciiArt = (userId) => {
-    return asciiAnimals[userId % asciiAnimals.length];
-  };
-
   const fetchMatches = () => {
     axios.get(`/api/matches/find/${userId}`)
       .then(response => {
@@ -61,7 +42,7 @@ function MatchList({ userId }) {
     if (userId) fetchMatches();
   }, [userId]);
 
-  // Get username using the "name" field if available.
+  // Get username from the user object.
   const getUsername = (user) => {
     return user.name && user.name.trim() !== "" ? user.name : user.email.split('@')[0];
   };
@@ -84,7 +65,7 @@ function MatchList({ userId }) {
     console.log(`Card for user ${matchUserId} left the screen`);
   };
 
-  // Styling
+  // Styling for overall page and container.
   const pageStyle = {
     background: 'linear-gradient(135deg, #e0f7fa, #ffffff)',
     minHeight: '100vh',
@@ -110,7 +91,7 @@ function MatchList({ userId }) {
     backgroundColor: '#ffffff',
     width: '320px',
     height: '500px',
-    boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
+    boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
     borderRadius: '16px',
     display: 'flex',
     flexDirection: 'column',
@@ -125,7 +106,6 @@ function MatchList({ userId }) {
     padding: '1rem'
   };
 
-  // Text container style with white text.
   const textContainerStyle = {
     marginTop: 'auto',
     textAlign: 'left',
@@ -134,12 +114,18 @@ function MatchList({ userId }) {
     color: '#ffffff'
   };
 
+  // Username style remains white with blue-teal outline.
   const usernameStyle = {
     fontSize: '1.8rem',
     fontWeight: 'bold',
     marginBottom: '0.5rem',
     color: '#ffffff',
     WebkitTextStroke: '1px #5ccdc1'
+  };
+
+  // Update emoji style: larger size.
+  const emojiStyle = {
+    fontSize: '6rem'
   };
 
   const buttonStyle = {
@@ -157,7 +143,9 @@ function MatchList({ userId }) {
     <div style={pageStyle}>
       <h2 style={headerStyle}>Match List</h2>
       <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-        <button style={buttonStyle} onClick={() => navigate('/update')}>Update Preference</button>
+        <button style={buttonStyle} onClick={() => navigate('/update')}>
+          Update Preference
+        </button>
       </div>
       {error && <p style={{ color: 'blue', textAlign: 'center' }}>{error}</p>}
       <div style={cardContainerStyle}>
@@ -171,9 +159,7 @@ function MatchList({ userId }) {
             >
               <div style={cardStyle}>
                 <div style={imageContainerStyle}>
-                  <span style={{ fontSize: '5rem' }}>
-                    {getEngineerEmoji(match.user)}
-                  </span>
+                  <span style={emojiStyle}>{getEngineerEmoji(match.user)}</span>
                 </div>
                 <div style={textContainerStyle}>
                   <h3 style={usernameStyle}>{getUsername(match.user)}</h3>
