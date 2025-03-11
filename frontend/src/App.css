@@ -1,0 +1,141 @@
+/* App.css */
+
+/* Colors derived from your fish logo’s teal / seafoam palette */
+:root {
+  --studbud-teal: #5ccdc1; /* Primary teal color - adjust as needed */
+  --studbud-dark: #2c6e6a; /* A darker shade for text or accents */
+  --studbud-light: #eaf8f7; /* A light background color */
+  --studbud-white: #ffffff; 
+}
+
+/* Global body styling */
+body {
+  margin: 0;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--studbud-light);
+  color: var(--studbud-dark);
+}
+
+/* A nice container for content */
+.container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 1rem;
+  background-color: var(--studbud-white);
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Header bar with logo */
+.header {
+  display: flex;
+  align-items: center;
+  background-color: var(--studbud-teal);
+  padding: 1rem;
+}
+
+.header img {
+  height: 50px;
+  margin-right: 1rem;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: var(--studbud-white);
+  font-weight: 600;
+}
+
+/* Navigation menu */
+nav {
+  background-color: var(--studbud-white);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  padding: 0.5rem 1rem;
+}
+
+nav ul {
+  display: flex;
+  list-style: none;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+}
+
+nav ul li {
+  margin: 0;
+}
+
+nav a, nav button {
+  text-decoration: none;
+  color: var(--studbud-dark);
+  font-weight: 500;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+}
+
+nav a:hover, nav button:hover {
+  background-color: var(--studbud-teal);
+  color: var(--studbud-white);
+}
+
+/* Buttons */
+button {
+  background-color: var(--studbud-teal);
+  color: var(--studbud-white);
+  border: none;
+  padding: 0.5rem 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: var(--studbud-dark);
+}
+
+/* Headings and spacing */
+h2, h3 {
+  color: var(--studbud-dark);
+  margin-bottom: 0.5rem;
+}
+
+/* Form elements */
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+form input, form select {
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 220px;
+}
+
+fieldset {
+  border: 1px solid #ccc;
+  padding: 1rem;
+  border-radius: 4px;
+}
+
+/* Utility classes */
+.text-center {
+  text-align: center;
+}
+
+.mt-2 {
+  margin-top: 2rem;
+}
+
+.mb-2 {
+  margin-bottom: 2rem;
+}
+
+.error {
+  color: red;
+  margin-top: 1rem;
+}
