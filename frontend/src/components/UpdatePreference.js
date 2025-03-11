@@ -18,7 +18,6 @@ function UpdatePreference({ userId }) {
   const [selectedTeachSubjects, setSelectedTeachSubjects] = useState([]);
   const [message, setMessage] = useState('');
 
-  // Container style
   const containerStyle = {
     maxWidth: '600px',
     margin: '2rem auto',
@@ -37,55 +36,19 @@ function UpdatePreference({ userId }) {
     fontWeight: 'bold'
   };
 
-  // Grid: two columns per row.
-  const checkboxGroupStyle = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: '0.5rem'
-  };
-
-  // Each list item is a flex container.
-  const listItemStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    marginBottom: '0.5rem'
-  };
-
-  // A fixed-width container for the checkbox ensures all text lines up.
-  const checkboxContainerStyle = {
-    width: '20px', // fixed width for checkbox
-    display: 'flex',
-    justifyContent: 'center'
-  };
-
-  // Text style with a small left margin.
-  const textStyle = {
-    marginLeft: '0.5rem'
-  };
-
   const listStyle = {
     listStyle: 'none',
-    padding: 0,
+    paddingLeft: 0,
     margin: 0
   };
 
-  const submitBtnStyle = {
-    padding: '0.75rem 2rem',
-    fontSize: '1rem',
-    backgroundColor: '#5ccdc1',
-    color: '#ffffff',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    transition: 'background-color 0.3s ease',
-    display: 'block',
-    margin: '0 auto'
-  };
-
-  const messageStyle = {
-    marginTop: '1rem',
-    color: 'red',
-    textAlign: 'center'
+  const labelStyle = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.1rem',
+    marginBottom: '0.5rem',
+    fontSize: '0.9rem',
+    color: '#555'
   };
 
   const handleCheckboxChange = (option, stateArray, setter) => {
@@ -105,7 +68,14 @@ function UpdatePreference({ userId }) {
     };
     axios.post(`/api/user/${userId}/preference`, preferenceData)
       .then(() => setMessage('Preference updated successfully.'))
-      .catch(error => setMessage(error.response?.data || 'Update failed.'));
+      .catch(error => {
+        // If error.response.data is an object, assume it's due to too many preferences picked.
+        if (error.response && typeof error.response.data === 'object') {
+          setMessage("Too many preferences picked. Please select fewer subjects.");
+        } else {
+          setMessage(error.response?.data || 'Update failed.');
+        }
+      });
   };
 
   return (
@@ -116,16 +86,16 @@ function UpdatePreference({ userId }) {
           <legend style={legendStyle}>Available Days</legend>
           <ul style={listStyle}>
             {DAYS.map(day => (
-              <li key={day} style={listItemStyle}>
-                <div style={checkboxContainerStyle}>
+              <li key={day}>
+                <label style={labelStyle}>
                   <input
                     type="checkbox"
                     value={day}
                     checked={selectedDays.includes(day)}
                     onChange={() => handleCheckboxChange(day, selectedDays, setSelectedDays)}
                   />
-                </div>
-                <span style={textStyle}>{day}</span>
+                  {day}
+                </label>
               </li>
             ))}
           </ul>
@@ -135,16 +105,16 @@ function UpdatePreference({ userId }) {
           <legend style={legendStyle}>Subjects to Learn</legend>
           <ul style={listStyle}>
             {SUBJECTS.map(subject => (
-              <li key={subject} style={listItemStyle}>
-                <div style={checkboxContainerStyle}>
+              <li key={subject}>
+                <label style={labelStyle}>
                   <input
                     type="checkbox"
                     value={subject}
                     checked={selectedLearnSubjects.includes(subject)}
                     onChange={() => handleCheckboxChange(subject, selectedLearnSubjects, setSelectedLearnSubjects)}
                   />
-                </div>
-                <span style={textStyle}>{subject}</span>
+                  {subject}
+                </label>
               </li>
             ))}
           </ul>
@@ -154,26 +124,26 @@ function UpdatePreference({ userId }) {
           <legend style={legendStyle}>Subjects to Teach</legend>
           <ul style={listStyle}>
             {SUBJECTS.map(subject => (
-              <li key={subject} style={listItemStyle}>
-                <div style={checkboxContainerStyle}>
+              <li key={subject}>
+                <label style={labelStyle}>
                   <input
                     type="checkbox"
                     value={subject}
                     checked={selectedTeachSubjects.includes(subject)}
                     onChange={() => handleCheckboxChange(subject, selectedTeachSubjects, setSelectedTeachSubjects)}
                   />
-                </div>
-                <span style={textStyle}>{subject}</span>
+                  {subject}
+                </label>
               </li>
             ))}
           </ul>
         </fieldset>
 
         <div style={{ textAlign: 'center' }}>
-          <button type="submit" style={submitBtnStyle}>Update Preference</button>
+          <button type="submit">Update Preference</button>
         </div>
       </form>
-      {message && <p style={messageStyle}>{message}</p>}
+      {message && <p style={{ color: 'red', marginTop: '1rem', textAlign: 'center' }}>{message}</p>}
     </div>
   );
 }

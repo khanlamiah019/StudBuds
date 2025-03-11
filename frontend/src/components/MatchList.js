@@ -114,7 +114,6 @@ function MatchList({ userId }) {
     color: '#ffffff'
   };
 
-  // Username style remains white with blue-teal outline.
   const usernameStyle = {
     fontSize: '1.8rem',
     fontWeight: 'bold',
@@ -123,7 +122,6 @@ function MatchList({ userId }) {
     WebkitTextStroke: '1px #5ccdc1'
   };
 
-  // Update emoji style: larger size.
   const emojiStyle = {
     fontSize: '6rem'
   };
@@ -143,11 +141,13 @@ function MatchList({ userId }) {
     <div style={pageStyle}>
       <h2 style={headerStyle}>Match List</h2>
       <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-        <button style={buttonStyle} onClick={() => navigate('/update')}>
-          Update Preference
-        </button>
+        <button style={buttonStyle} onClick={() => navigate('/update')}>Update Preference</button>
       </div>
-      {error && <p style={{ color: 'blue', textAlign: 'center' }}>{error}</p>}
+      {error && (
+        <p style={{ color: 'blue', textAlign: 'center' }}>
+          {typeof error === 'object' ? JSON.stringify(error) : error}
+        </p>
+      )}
       <div style={cardContainerStyle}>
         {matches && matches.length > 0 ? (
           matches.map((match) => (
