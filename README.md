@@ -111,15 +111,12 @@ http://localhost:8080
 
 ## API Endpoints:
 
-
-1. Authentication
-
-a) Sign Up
-
-Method: POST
-Endpoint: /api/auth/signup
-Description: Registers a new user. Email must end with "@cooper.edu" and password must be at least 9 characters.
-Request Body:
+**1. Authentication**  
+**a) Sign Up**  
+Method: POST  
+Endpoint: /api/auth/signup  
+Description: Registers a new user. Email must end with "@cooper.edu" and password must be at least 9 characters.  
+Request Body:  
 ```
 {
    "name": "Your Name",
@@ -128,40 +125,36 @@ Request Body:
     "major": "Your Major",
     "year": "Your Year"
 }
-Expected Response: A success message like "User registered successfully." or an error if the email is already in use.
 ```
+Expected Response: A success message like "User registered successfully." or an error if the email is already in use.  
 
-b) Login
-
-Method: POST
-Endpoint: /api/auth/login
-Description: Authenticates an existing user.
-Request Body:
+**b) Login**  
+Method: POST  
+Endpoint: /api/auth/login  
+Description: Authenticates an existing user.  
+Request Body:  
 ```
 {
     "email": "your_email@cooper.edu",
     "password": "your_password"
 }
-Expected Response: A message indicating "Login successful."
 ```
+Expected Response: A message indicating "Login successful."  
 
-2. User Management
+**2. User Management** 
+**a) Get User Details**  
+Method: GET  
+Endpoint: /api/user/{userId}  
+Description: Retrieves the details of a user by their ID.  
+Example URL:  
+http://localhost:8080/api/user/1  
+Expected Response: A user object if found, or a 404 error if not.  
 
-a) Get User Details
-
-Method: GET
-Endpoint: /api/user/{userId}
-Description: Retrieves the details of a user by their ID.
-Example URL:
-http://localhost:8080/api/user/1
-Expected Response: A user object if found, or a 404 error if not.
-
-b) Update or Create User Preference
-
-Method: POST
-Endpoint: /api/user/{userId}/preference
-Description: Sets or updates the preferences for a user.
-Request Body:
+**b) Update or Create User Preference**  
+Method: POST  
+Endpoint: /api/user/{userId}/preference  
+Description: Sets or updates the preferences for a user.  
+Request Body:  
 ```
 {
     "availableDays": "monday,tuesday",
@@ -169,41 +162,35 @@ Request Body:
     "subjectsToTeach": "chemistry"
 }
 ```
-Expected Response: The saved preference details.
+Expected Response: The saved preference details.  
 
-3. Matching
+**3. Matching**  
+**a) Find Matches**
+Method: GET  
+Endpoint: /api/matches/find/{userId}  
+Description: Retrieves matching suggestions for a given user based on their preferences.  
+Example URL:  
+http://localhost:8080/api/matches/find/1  
+Expected Response: A list of match suggestions including match score, common days, and common subjects. If no preferences are set, a message indicating that will be returned.  
 
-a) Find Matches
+**b) Connect Match**  
+Method: POST   
+Endpoint: /api/matches/connect   
+Query Parameters: user1Id (ID of the first user), user2Id (ID of the second user)   
+Description: Records a match between two users if they have not already been matched.  
+Example URL:  
+http://localhost:8080/api/matches/connect?user1Id=1&user2Id=2  
+Expected Response: The created match object or a 400 error if the users are already matched or if one or both users are not found.  
 
-Method: GET
-Endpoint: /api/matches/find/{userId}
-Description: Retrieves matching suggestions for a given user based on their preferences.
-Example URL:
-http://localhost:8080/api/matches/find/1
-Expected Response: A list of match suggestions including match score, common days, and common subjects. If no preferences are set, a message indicating that will be returned.
+**4. Testing Endpoints**  
+**a) List All Users**  
+Method: GET  
+Endpoint: /api/test/users   
+Description: Retrieves all users from the database.  
+Expected Response: An array of user objects.  
 
-b) Connect Match
-
-Method: POST
-Endpoint: /api/matches/connect
-Query Parameters: user1Id (ID of the first user), user2Id (ID of the second user)
-Description: Records a match between two users if they have not already been matched.
-Example URL:
-http://localhost:8080/api/matches/connect?user1Id=1&user2Id=2
-Expected Response: The created match object or a 400 error if the users are already matched or if one or both users are not found.
-
-4. Testing Endpoints
-
-a) List All Users
-
-Method: GET
-Endpoint: /api/test/users
-Description: Retrieves all users from the database.
-Expected Response: An array of user objects.
-
-b) List All Preferences
-
-Method: GET
-Endpoint: /api/test/preferences
-Description: Retrieves all user preferences.
-Expected Response: An array of preference objects.
+**b) List All Preferences**  
+Method: GET  
+Endpoint: /api/test/preferences  
+Description: Retrieves all user preferences.  
+Expected Response: An array of preference objects.  
