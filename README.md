@@ -65,30 +65,26 @@ StudBuds is a Spring Boot–based (rigth now just the backend) application for a
 **Configuration:**
 
 1. Update the database credentials:
-   - Open the "application.properties" file located in src/main/resources.
+   - Open the `application.properties` file located in src/main/resources.
    - Modify the following properties with your PostgreSQL details:
      
 2. (If using Docker Compose)
-   - Open the "docker-compose.yml" file.
+   - Open the `docker-compose.yml` file.
    - Ensure the PostgreSQL environment variables match those in your application.properties:
      
-     POSTGRES_DB: studbuds
-     POSTGRES_USER: your_username
-     POSTGRES_PASSWORD: your_password
+     `POSTGRES_DB: studbuds`
+     `POSTGRES_USER: your_username`
+     `POSTGRES_PASSWORD: your_password`
 
 **Building and Running with Maven (Locally):**
 
 1. Open a terminal in the project root directory.
 
 2. Build the project:
-[code]
-mvn clean install
-[/code]
+`mvn clean install`
 
 3. Run the application:
-[code]
-mvn spring-boot:run
-[/code]
+`mvn spring-boot:run`
 
 4. Access the application at:
 http://localhost:8080
@@ -99,7 +95,7 @@ http://localhost:8080
 1. Open a terminal in the project root directory.
 
 2. Build and run the containers:
-   Command: docker-compose up --build
+  `docker-compose up --build`
 
 3. The backend service will be available at:
    http://localhost:8080
@@ -119,38 +115,40 @@ http://localhost:8080
 1. Authentication
 
 a) Sign Up
----------------------
+
 Method: POST
 Endpoint: /api/auth/signup
 Description: Registers a new user. Email must end with "@cooper.edu" and password must be at least 9 characters.
 Request Body:
----------------------
+```
 {
-    "name": "Your Name",
+   "name": "Your Name",
     "email": "your_email@cooper.edu",
     "password": "your_password",
     "major": "Your Major",
     "year": "Your Year"
 }
 Expected Response: A success message like "User registered successfully." or an error if the email is already in use.
+```
 
 b) Login
----------------------
+
 Method: POST
 Endpoint: /api/auth/login
 Description: Authenticates an existing user.
 Request Body:
----------------------
+```
 {
     "email": "your_email@cooper.edu",
     "password": "your_password"
 }
 Expected Response: A message indicating "Login successful."
+```
 
 2. User Management
 
 a) Get User Details
----------------------
+
 Method: GET
 Endpoint: /api/user/{userId}
 Description: Retrieves the details of a user by their ID.
@@ -159,23 +157,24 @@ http://localhost:8080/api/user/1
 Expected Response: A user object if found, or a 404 error if not.
 
 b) Update or Create User Preference
----------------------
+
 Method: POST
 Endpoint: /api/user/{userId}/preference
 Description: Sets or updates the preferences for a user.
 Request Body:
----------------------
+```
 {
     "availableDays": "monday,tuesday",
     "subjectsToLearn": "calculus i,physics",
     "subjectsToTeach": "chemistry"
 }
+```
 Expected Response: The saved preference details.
 
 3. Matching
 
 a) Find Matches
----------------------
+
 Method: GET
 Endpoint: /api/matches/find/{userId}
 Description: Retrieves matching suggestions for a given user based on their preferences.
@@ -184,7 +183,7 @@ http://localhost:8080/api/matches/find/1
 Expected Response: A list of match suggestions including match score, common days, and common subjects. If no preferences are set, a message indicating that will be returned.
 
 b) Connect Match
----------------------
+
 Method: POST
 Endpoint: /api/matches/connect
 Query Parameters: user1Id (ID of the first user), user2Id (ID of the second user)
@@ -196,14 +195,14 @@ Expected Response: The created match object or a 400 error if the users are alre
 4. Testing Endpoints
 
 a) List All Users
----------------------
+
 Method: GET
 Endpoint: /api/test/users
 Description: Retrieves all users from the database.
 Expected Response: An array of user objects.
 
 b) List All Preferences
----------------------
+
 Method: GET
 Endpoint: /api/test/preferences
 Description: Retrieves all user preferences.
