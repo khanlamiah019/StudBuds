@@ -37,6 +37,12 @@ public class AuthController {
     private MatchRepository matchRepository;
 
     @Autowired
+    private PreferenceRepository preferenceRepository;
+
+    @Autowired
+    private MatchRepository matchRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @PostMapping("/signup")
@@ -135,5 +141,4 @@ public ResponseEntity<?> deleteAccount(@RequestBody DeleteAccountRequest deleteA
                 .body("An unexpected error occurred: " + e.getMessage());
     }
 }    
-
 }

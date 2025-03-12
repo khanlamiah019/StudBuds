@@ -22,7 +22,6 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
     // New method to get all matches where the given user is involved.
     List<Match> findByUser1OrUser2(User user1, User user2);
     
-    //this was aleady in main
     @Query("SELECT m FROM Match m WHERE m.user1 = :user OR m.user2 = :user")
     List<Match> findAllByUser(@Param("user") User user);
 }
