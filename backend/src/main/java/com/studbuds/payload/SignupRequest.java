@@ -12,7 +12,7 @@ public class SignupRequest {
    private String year;
    
    // Simulating a database of registered emails
-   static Set<String> registeredEmails = new HashSet<>();
+   public static Set<String> registeredEmails = new HashSet<>();
    
    // Getters and setters
    public String getName() { return name; }
