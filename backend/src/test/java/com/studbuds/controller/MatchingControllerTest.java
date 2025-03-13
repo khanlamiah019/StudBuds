@@ -1,6 +1,5 @@
 package com.studbuds.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.studbuds.model.Match;
 import com.studbuds.model.Swipe;
 import com.studbuds.model.User;
@@ -14,10 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.hamcrest.Matchers.containsString;
