@@ -34,8 +34,9 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
         User user = userOpt.get();
-        user.setMajor(updatedUser.getMajor());
-        user.setYear(updatedUser.getYear());
+        // Update basic user details (name and email)
+        user.setName(updatedUser.getName());
+        user.setEmail(updatedUser.getEmail());
         userRepository.save(user);
         return ResponseEntity.ok(user);
     }
@@ -55,6 +56,8 @@ public class UserController {
             preference.setAvailableDays(preferenceData.getAvailableDays());
             preference.setSubjectsToLearn(preferenceData.getSubjectsToLearn());
             preference.setSubjectsToTeach(preferenceData.getSubjectsToTeach());
+            preference.setMajor(preferenceData.getMajor());
+            preference.setYear(preferenceData.getYear());
         } else {
             // Create new preference and associate with user
             preference = new Preference();
@@ -62,6 +65,8 @@ public class UserController {
             preference.setAvailableDays(preferenceData.getAvailableDays());
             preference.setSubjectsToLearn(preferenceData.getSubjectsToLearn());
             preference.setSubjectsToTeach(preferenceData.getSubjectsToTeach());
+            preference.setMajor(preferenceData.getMajor());
+            preference.setYear(preferenceData.getYear());
         }
         Preference savedPreference = preferenceRepository.save(preference);
         return ResponseEntity.ok(savedPreference);

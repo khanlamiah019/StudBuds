@@ -1,9 +1,9 @@
 package com.studbuds.controller;
 
-import com.studbuds.model.User;
 import com.studbuds.model.Preference;
-import com.studbuds.repository.UserRepository;
+import com.studbuds.model.User;
 import com.studbuds.repository.PreferenceRepository;
+import com.studbuds.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,13 +19,11 @@ public class TestController {
     @Autowired
     private PreferenceRepository preferenceRepository;
 
-    // Endpoint to retrieve all users
     @GetMapping("/users")
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
-    // Endpoint to retrieve all preferences
     @GetMapping("/preferences")
     public List<Preference> getAllPreferences() {
         return preferenceRepository.findAll();

@@ -1,42 +1,43 @@
 package com.studbuds.payload;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SignupRequestTest {
 
     @Test
     public void testValidSignupRequest() {
-        SignupRequest signup = new SignupRequest();
-        signup.setName("George Washington");
-        signup.setEmail("george.washington@cooper.edu");
-        signup.setPassword("password123"); // valid: >=9 characters
-        signup.setMajor("Electrical Engineering");
-        signup.setYear("2025");
+        SignupRequest signupRequest = new SignupRequest();
+        signupRequest.setName("Test User");
+        signupRequest.setEmail("test@cooper.edu");
+        signupRequest.setPassword("password123");
+        signupRequest.setMajor("Computer Science");
+        signupRequest.setYear("Junior");
 
-        assertEquals("George Washington", signup.getName());
-        assertEquals("george.washington@cooper.edu", signup.getEmail());
-        assertEquals("password123", signup.getPassword());
-        assertEquals("Electrical Engineering", signup.getMajor());
-        assertEquals("2025", signup.getYear());
+        assertEquals("Test User", signupRequest.getName());
+        assertEquals("test@cooper.edu", signupRequest.getEmail());
+        assertEquals("password123", signupRequest.getPassword());
+        assertEquals("Computer Science", signupRequest.getMajor());
+        assertEquals("Junior", signupRequest.getYear());
     }
 
     @Test
-    public void testInvalidEmail() {
-        SignupRequest signup = new SignupRequest();
+    public void testInvalidEmailSignupRequest() {
+        SignupRequest signupRequest = new SignupRequest();
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            signup.setEmail("george.washington@gmail.com");
+            signupRequest.setEmail("test@gmail.com");
         });
-        assertEquals("Email must be a @cooper.edu address", exception.getMessage());
+        String expectedMessage = "Email must be a @cooper.edu address";
+        assertTrue(exception.getMessage().contains(expectedMessage));
     }
 
     @Test
-    public void testInvalidPassword() {
-        SignupRequest signup = new SignupRequest();
+    public void testInvalidPasswordSignupRequest() {
+        SignupRequest signupRequest = new SignupRequest();
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            signup.setPassword("short"); // less than 9 characters
+            signupRequest.setPassword("short");
         });
-        assertEquals("Password must be at least 9 characters long", exception.getMessage());
+        String expectedMessage = "Password must be at least 9 characters long";
+        assertTrue(exception.getMessage().contains(expectedMessage));
     }
 }

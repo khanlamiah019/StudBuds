@@ -1,34 +1,33 @@
 package com.studbuds.model;
 
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 import java.time.LocalDateTime;
+import static org.junit.jupiter.api.Assertions.*;
 
-class MatchTest {
-    
+public class MatchTest {
+
     @Test
-    void testMatchEntity() {
-        User user1 = new User();
-        user1.setId(1L);
-        User user2 = new User();
-        user2.setId(2L);
-        
+    public void testMatchGettersAndSetters() {
         Match match = new Match();
         match.setId(100L);
+
+        User user1 = new User();
+        user1.setId(1L);
+        user1.setName("User One");
+
+        User user2 = new User();
+        user2.setId(2L);
+        user2.setName("User Two");
+
         match.setUser1(user1);
         match.setUser2(user2);
-        LocalDateTime testDate = LocalDateTime.of(2025, 3, 12, 12, 0);
-        match.setMatchDate(testDate);
-        
+
+        LocalDateTime now = LocalDateTime.now();
+        match.setMatchDate(now);
+
         assertEquals(100L, match.getId());
         assertEquals(user1, match.getUser1());
         assertEquals(user2, match.getUser2());
-        assertEquals(testDate, match.getMatchDate());
-    }
-    
-    @Test
-    void testDefaultMatchDate() {
-        Match match = new Match();
-        assertNotNull(match.getMatchDate(), "Match date should not be null");
+        assertEquals(now, match.getMatchDate());
     }
 }

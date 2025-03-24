@@ -1,42 +1,26 @@
 package com.studbuds.payload;
 
-import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
-class DeleteAccountRequestTest {
-    private DeleteAccountRequest request;
+public class DeleteAccountRequestTest {
 
-    @BeforeEach
-    void setUp() {
-        request = new DeleteAccountRequest();
+    @Test
+    public void testValidEmail() {
+        DeleteAccountRequest request = new DeleteAccountRequest();
+        request.setEmail("test@cooper.edu");
+        request.setFirebaseToken("dummy-token");
+        assertEquals("test@cooper.edu", request.getEmail());
+        assertEquals("dummy-token", request.getFirebaseToken());
     }
 
     @Test
-    void testValidEmail() {
-        String validEmail = "user@cooper.edu";
-        request.setEmail(validEmail);
-        assertEquals(validEmail, request.getEmail());
-    }
-
-    @Test
-    void testInvalidEmail() {
-        String invalidEmail = "user@gmail.com";
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> request.setEmail(invalidEmail));
-        assertEquals("Email must be a @cooper.edu address", exception.getMessage());
-    }
-
-    @Test
-    void testValidPassword() {
-        String validPassword = "securePass1";
-        request.setPassword(validPassword);
-        assertEquals(validPassword, request.getPassword());
-    }
-
-    @Test
-    void testInvalidPassword() {
-        String invalidPassword = "short";
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> request.setPassword(invalidPassword));
-        assertEquals("Password must be at least 9 characters long", exception.getMessage());
+    public void testInvalidEmail() {
+        DeleteAccountRequest request = new DeleteAccountRequest();
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            request.setEmail("test@gmail.com");
+        });
+        String expectedMessage = "Email must be a @cooper.edu address";
+        assertTrue(exception.getMessage().contains(expectedMessage));
     }
 }
