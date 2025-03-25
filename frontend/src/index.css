@@ -1,0 +1,4 @@
+body { font-family: Arial, sans-serif; }
+nav { padding: 1rem; background: #333; color: white; }
+nav a { color: white; margin-right: 10px; }
+.card { padding: 20px; background: #eee; margin-top: 20px; border-radius: 10px; }
