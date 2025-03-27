@@ -1,7 +1,0 @@
-# Backend build artifacts
-/backend/target/
-/backend/*.jar
-backend/src/main/resources/firebase-authentication-config.json
-
-# OS generated files
-.DS_Storebackend/src/main/resources/firebase-authentication-config.json

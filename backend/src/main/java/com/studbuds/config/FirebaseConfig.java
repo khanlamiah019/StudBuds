@@ -17,11 +17,13 @@ public class FirebaseConfig {
     @PostConstruct
     public void initialize() {
         try {
+            // Ensure this filename matches your actual file in src/main/resources
             InputStream serviceAccount = this.getClass().getClassLoader()
-                    .getResourceAsStream("firebase-authentication-config.json");
+                .getResourceAsStream("firebase-authentication-config.json");
+
             FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                    .build();
+                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                .build();
 
             if (FirebaseApp.getApps().isEmpty()) {
                 FirebaseApp.initializeApp(options);

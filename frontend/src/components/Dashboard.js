@@ -1,18 +1,18 @@
-import { useEffect,useState } from 'react';
-import TinderCard from 'react-tinder-card';
-import api from '../api';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
-function Dashboard() {
-  const [matches,setMatches]=useState([]);
-  const userId=localStorage.getItem('userId');
-
-  useEffect(()=>{
-    api.get(`/api/matches/find/${userId}`).then(res=>setMatches(res.data));
-  },[userId]);
-
-  const swipe=(dir,user)=>dir==='right'&&api.post(`/api/matches/swipe`,null,{params:{user1Id:userId,user2Id:user.user.id}});
-
-  return <div>{matches.map(m=><TinderCard onSwipe={dir=>swipe(dir,m)} key={m.user.id}><div className="card">{m.user.name}</div></TinderCard>)}</div>;
+function Dashboard({ userId }) {
+  const navigate = useNavigate();
+  return (
+    <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+      <h2>Dashboard</h2>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+        <button onClick={() => navigate('/update')}>Update Preferences</button>
+        <button onClick={() => navigate('/matchlist')}>View Matches</button>
+        <button onClick={() => navigate('/profile')}>Profile</button>
+      </div>
+    </div>
+  );
 }
 
 export default Dashboard;

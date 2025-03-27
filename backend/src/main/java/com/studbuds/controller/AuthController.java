@@ -10,7 +10,6 @@ import com.studbuds.payload.DeleteAccountRequest;
 import com.studbuds.payload.LoginRequest;
 import com.studbuds.payload.SignupRequest;
 import com.studbuds.repository.PreferenceRepository;
-import com.studbuds.repository.MatchRepository;
 import com.studbuds.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,38 +27,33 @@ public class AuthController {
 
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private PreferenceRepository preferenceRepository;
-    
-    @Autowired
-    private MatchRepository matchRepository;
 
     @Autowired
     private FirebaseAuth firebaseAuth;
-
     @PostMapping("/signup")
     public ResponseEntity<?> signUp(@RequestBody SignupRequest signupRequest) {
-        if (userRepository.findByEmail(signupRequest.getEmail()).isPresent()) {
-            return ResponseEntity.badRequest().body("Email already in use.");
-        }
         try {
-            // Create user in Firebase
-            UserRecord.CreateRequest request = new UserRecord.CreateRequest()
-                    .setEmail(signupRequest.getEmail())
-                    .setPassword(signupRequest.getPassword())
-                    .setDisplayName(signupRequest.getName());
-            UserRecord userRecord = firebaseAuth.createUser(request);
+            // Check if the user already exists in the local DB.
+            if (userRepository.findByEmail(signupRequest.getEmail()).isPresent()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("User already exists. Please sign in.");
+            }
             
-            // Create local user record (without password, major, and year)
+            // Retrieve the Firebase user record (assumes the client already created the user).
+            UserRecord userRecord = firebaseAuth.getUserByEmail(signupRequest.getEmail());
+            
+            // Create the local user record.
             User user = new User();
-            user.setName(userRecord.getDisplayName());
-            user.setEmail(userRecord.getEmail());
+            user.setName(signupRequest.getName());
+            user.setEmail(signupRequest.getEmail());
             user.setFirebaseUid(userRecord.getUid());
             user.setCreatedAt(LocalDateTime.now());
             userRepository.save(user);
             
-            // Create preference record with major and year data moved here
+            // Create and link the preference record.
             Preference preference = new Preference();
             preference.setUser(user);
             preference.setMajor(signupRequest.getMajor());
@@ -68,38 +62,50 @@ public class AuthController {
             preference.setSubjectsToLearn("");
             preference.setSubjectsToTeach("");
             preferenceRepository.save(preference);
-            
-            // Associate user with preference
             user.setPreference(preference);
             userRepository.save(user);
             
-            return ResponseEntity.ok("User registered successfully.");
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "User registered successfully.");
+            response.put("userId", user.getId());
+            return ResponseEntity.ok(response);
         } catch (FirebaseAuthException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Firebase error: " + e.getMessage());
         }
     }
     
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
-            // Verify Firebase token sent from the client
+            // Verify the Firebase token.
             FirebaseToken decodedToken = firebaseAuth.verifyIdToken(loginRequest.getFirebaseToken());
             String email = decodedToken.getEmail();
-            
             Optional<User> userOptional = userRepository.findByEmail(email);
+            
+            // If local user record is not found, create it automatically.
             if (!userOptional.isPresent()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found in local DB.");
+                User user = new User();
+                user.setEmail(email);
+                user.setFirebaseUid(decodedToken.getUid());
+                user.setName(decodedToken.getName() != null ? decodedToken.getName() : email.split("@")[0]);
+                user.setCreatedAt(LocalDateTime.now());
+                userRepository.save(user);
+                userOptional = Optional.of(user);
             }
+            
             User user = userOptional.get();
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Login successful.");
             response.put("userId", user.getId());
             return ResponseEntity.ok(response);
         } catch (FirebaseAuthException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Firebase token.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid Firebase token.");
         }
     }
-    
+
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteAccount(@RequestBody DeleteAccountRequest deleteAccountRequest) {
         try {
@@ -108,22 +114,22 @@ public class AuthController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
             }
             User user = userOpt.get();
-            // Delete user from Firebase using the stored Firebase UID
+            
+            // Delete the user from Firebase using the stored UID.
             firebaseAuth.deleteUser(user.getFirebaseUid());
             
-            // Delete associated preference if exists
+            // Delete associated preference (if exists)
             Optional<Preference> preferenceOpt = preferenceRepository.findByUser(user);
             preferenceOpt.ifPresent(preferenceRepository::delete);
             
-            // Delete all matches involving this user
-            matchRepository.deleteAll(matchRepository.findAllByUser(user));
-            
-            // Delete the local user record
+            // Delete the local user record.
             userRepository.delete(user);
             
             return ResponseEntity.ok("Account deleted successfully.");
         } catch (FirebaseAuthException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Firebase error: " + e.getMessage());
         }
     }
+
 }

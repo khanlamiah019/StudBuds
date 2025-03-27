@@ -2,26 +2,17 @@ package com.studbuds.payload;
 
 public class DeleteAccountRequest {
     private String email;
-    private String firebaseToken;
-
-    public DeleteAccountRequest() {}
+    private String firebaseToken; // Optional if you want to include the token from the client.
 
     public String getEmail() {
         return email;
     }
-
     public void setEmail(String email) {
-        if(email != null && email.endsWith("@cooper.edu")){
-            this.email = email;
-        } else {
-            throw new IllegalArgumentException("Email must be a @cooper.edu address");
-        }
+        this.email = email;
     }
-
     public String getFirebaseToken() {
         return firebaseToken;
     }
-
     public void setFirebaseToken(String firebaseToken) {
         this.firebaseToken = firebaseToken;
     }
