@@ -1,196 +1,180 @@
-# StudBuds Backend
+# 📚 StudBuds  
 
-StudBuds is a Spring Boot–based (rigth now just the backend) application for a Study Buddy Matching service. It enables users (with a required @cooper.edu email) to register, log in, update their profiles and preferences, and find study buddies based on shared availability, subjects, and academic courses.
+**StudBuds** is a full-stack web application that helps students at Cooper Union find the perfect study buddy. Users are matched based on overlapping subjects, availability, and shared interests. The app uses a modern stack with a React frontend, Firebase Authentication, and a robust Spring Boot backend.
 
-## Features
+---
 
-- **User Authentication**  
-  - **Sign Up:** Users can register using a valid @cooper.edu email and a password (minimum 9 characters).  
-  - **Login:** Basic login endpoint returning a dummy success message (to be extended).
+## 🌟 Features  
 
-- **User Management**  
-  - Retrieve user details and update user profiles.  
-  - Manage user preferences such as available days, subjects to teach, and subjects to learn.
+- **Secure Authentication:** Firebase-powered signup/login (restricted to `@cooper.edu` emails).
+- **User Profiles:** Update name, major, graduation year, and study preferences.
+- **Intuitive Preferences UI:** Easily select days and subjects to learn or teach.
+- **Swipe & Match System:** Tinder-like interface for finding study partners.
+- **Automatic Matching:** Smart matching based on shared availability and subjects.
+- **Responsive & Mobile-friendly:** Fully optimized for desktop and mobile browsers.
 
-- **Matching Algorithm**  
-  - Matches users based on:
-    - Shared major and academic year.
-    - Overlapping available days.
-    - Teaching/learning synergy (one-way or two-way).
-  - Provides a match score to rank study buddy suggestions.
+---
 
-- **Testing Endpoints**  
-  - Endpoints to list all users and preferences to facilitate testing and debugging.
+## 💻 Tech Stack  
 
-- **Security**  
-  - Configured with Spring Security and BCrypt for password encoding.
-  - Permits all endpoints for demo purposes (with scope for future tightening).
+**Frontend:**  
+- React  
+- React Router  
+- Axios  
+- Firebase Authentication  
 
-- **Containerized Deployment**  
-  - Includes a Docker Compose setup with PostgreSQL for streamlined deployment.
+**Backend:**  
+- Java + Spring Boot  
+- PostgreSQL  
+- Firebase Admin SDK  
+- Docker & Docker Compose  
 
-## Project Structure
+---
 
-- **Configuration:**  
-  - `SecurityConfig.java` – Sets up basic security configurations.
+## 📂 Project Structure
 
-- **Controllers:**  
-  - `AuthController.java` – Handles authentication (signup and login).  
-  - `UserController.java` – Manages user details and preferences.  
-  - `MatchingController.java` – Provides endpoints for matching logic.  
-  - `TestController.java` – Contains endpoints for listing all users and preferences.
-
-- **Models & Payloads:**  
-  - Domain models: `User.java`, `Preference.java`, `Match.java`.  
-  - Request payloads: `SignupRequest.java`, `LoginRequest.java`, and `DeleteAccountRequest.java`.
-
-- **Repositories:**  
-  - Data access interfaces for users, preferences, and matches.
-
-- **Services:**  
-  - `MatchingService.java` – Implements the matching algorithm and business logic.
-
-- **Configuration Files:**  
-  - `pom.xml` – Maven configuration for dependencies and build settings.
-  - `application.properties` – Application settings for PostgreSQL and Spring JPA.
-  - `docker-compose.yml` – Docker Compose file for containerized deployment with PostgreSQL.
-
-## Prerequisites
-
-- Java 11 installed
-- Maven installed
-- PostgreSQL (if running locally) or Docker with Docker Compose
-
-## Build and Run Instructions
-**Configuration:**
-
-1. Update the database credentials:
-   - Open the `application.properties` file located in src/main/resources.
-   - Modify the following properties with your PostgreSQL details:
-     
-2. (If using Docker Compose)
-   - Open the `docker-compose.yml` file.
-   - Ensure the PostgreSQL environment variables match those in your application.properties:
-     
-     `POSTGRES_DB: studbuds`
-     `POSTGRES_USER: your_username`
-     `POSTGRES_PASSWORD: your_password`
-
-**Building and Running with Maven (Locally):**
-
-1. Open a terminal in the project root directory.
-
-2. Build the project:
-`mvn clean install`
-
-3. Run the application:
-`mvn spring-boot:run`
-
-4. Access the application at:
-http://localhost:8080
-
-
-**Running with Docker Compose:**
-
-1. Open a terminal in the project root directory.
-
-2. Build and run the containers:
-  `docker-compose up --build`
-
-3. The backend service will be available at:
-   http://localhost:8080
-   and PostgreSQL will be running on port 5432.
-
-
-**Troubleshooting:**
-- Database Connection Issues:
-  Ensure that the credentials in application.properties and docker-compose.yml are correct and that PostgreSQL is running.
-  
-- Port Conflicts:
-  Verify that ports 8080 (backend) and 5432 (PostgreSQL) are not used by other services.
-
-## API Endpoints:
-
-**1. Authentication**  
-**a) Sign Up**  
-Method: POST  
-Endpoint: /api/auth/signup  
-Description: Registers a new user. Email must end with "@cooper.edu" and password must be at least 9 characters.  
-Request Body:  
 ```
-{
-   "name": "Your Name",
-    "email": "your_email@cooper.edu",
-    "password": "your_password",
-    "major": "Your Major",
-    "year": "Your Year"
-}
+studbuds/
+├── backend/
+│   ├── src/main/java/com/studbuds/
+│   │   ├── config/                 # Security & Firebase configuration
+│   │   ├── controller/             # API controllers
+│   │   ├── exception/              # Global exception handling
+│   │   ├── model/                  # Data models (User, Preferences, etc.)
+│   │   ├── payload/                # Request payloads
+│   │   └── repository/             # Database repositories
+│   ├── src/main/resources/         # App configs & Firebase credentials
+│   ├── Dockerfile                  
+│   └── pom.xml
+│
+├── frontend/
+│   ├── public/                     # Static assets
+│   ├── src/
+│   │   ├── components/             # React components
+│   │   ├── App.js & App.css        # App root & global styling
+│   │   └── firebase-config.js      # Firebase frontend credentials
+│   ├── package.json                
+│   └── docker-compose.yml          
+│
+└── README.md
 ```
-Expected Response: A success message like "User registered successfully." or an error if the email is already in use.  
 
-**b) Login**  
-Method: POST  
-Endpoint: /api/auth/login  
-Description: Authenticates an existing user.  
-Request Body:  
+---
+
+## 🚀 Quickstart  
+
+### ⚙️ Prerequisites  
+- Java 11 or newer  
+- Node.js & npm  
+- PostgreSQL (or Docker)  
+- Firebase project (Auth & Firestore enabled)
+
+### 🔧 Backend Setup  
+
+**Step 1: Firebase Admin SDK**  
+- Place your Firebase Admin SDK JSON at:  
 ```
-{
-    "email": "your_email@cooper.edu",
-    "password": "your_password"
-}
+backend/src/main/resources/firebase-authentication-config.json
 ```
-Expected Response: A message indicating "Login successful."  
 
-**2. User Management** 
-**a) Get User Details**  
-Method: GET  
-Endpoint: /api/user/{userId}  
-Description: Retrieves the details of a user by their ID.  
-Example URL:  
-http://localhost:8080/api/user/1  
-Expected Response: A user object if found, or a 404 error if not.  
-
-**b) Update or Create User Preference**  
-Method: POST  
-Endpoint: /api/user/{userId}/preference  
-Description: Sets or updates the preferences for a user.  
-Request Body:  
+**Step 2: PostgreSQL Setup**  
+- Configure `backend/src/main/resources/application.properties`:
 ```
-{
-    "availableDays": "monday,tuesday",
-    "subjectsToLearn": "calculus i,physics",
-    "subjectsToTeach": "chemistry"
-}
+spring.datasource.url=jdbc:postgresql://localhost:5432/studbuds
+spring.datasource.username=your_postgres_username
+spring.datasource.password=your_postgres_password
 ```
-Expected Response: The saved preference details.  
 
-**3. Matching**  
-**a) Find Matches**
-Method: GET  
-Endpoint: /api/matches/find/{userId}  
-Description: Retrieves matching suggestions for a given user based on their preferences.  
-Example URL:  
-http://localhost:8080/api/matches/find/1  
-Expected Response: A list of match suggestions including match score, common days, and common subjects. If no preferences are set, a message indicating that will be returned.  
+**Step 3: Run Backend**  
+```shell
+cd backend
+mvn clean install
+mvn spring-boot:run
+```
+Backend API will run on: `http://localhost:8080`
 
-**b) Connect Match**  
-Method: POST   
-Endpoint: /api/matches/connect   
-Query Parameters: user1Id (ID of the first user), user2Id (ID of the second user)   
-Description: Records a match between two users if they have not already been matched.  
-Example URL:  
-http://localhost:8080/api/matches/connect?user1Id=1&user2Id=2  
-Expected Response: The created match object or a 400 error if the users are already matched or if one or both users are not found.  
+---
 
-**4. Testing Endpoints**  
-**a) List All Users**  
-Method: GET  
-Endpoint: /api/test/users   
-Description: Retrieves all users from the database.  
-Expected Response: An array of user objects.  
+### 🌐 Frontend Setup  
 
-**b) List All Preferences**  
-Method: GET  
-Endpoint: /api/test/preferences  
-Description: Retrieves all user preferences.  
-Expected Response: An array of preference objects.  
+**Step 1: Firebase Config**  
+- Configure your Firebase app credentials in:  
+```
+frontend/src/firebase-config.js
+```
+
+**Step 2: Install & Run**  
+```shell
+cd frontend
+npm install
+npm start
+```
+
+Frontend available at: `http://localhost:3000`
+
+---
+
+### 🐳 Docker (Full Stack Setup)  
+
+- From the root directory:
+```shell
+docker-compose up --build
+```
+
+| Service    | URL                         |
+|------------|-----------------------------|
+| Frontend   | http://localhost:3000       |
+| Backend    | http://localhost:8080       |
+| PostgreSQL | localhost:5432              |
+
+---
+
+## 📡 REST API Reference  
+
+### 🔒 Authentication  
+- `POST /api/auth/signup`  
+- `POST /api/auth/login`  
+
+### 👤 User Preferences  
+- `POST /api/user/{userId}/preference`  
+- `GET /api/user/{userId}`  
+
+### 🤝 Matching  
+- `GET /api/matches/find/{userId}`  
+- `POST /api/matches/swipe?user1Id={}&user2Id={}`  
+- `GET /api/matches/profile/{userId}`  
+
+### 🛠️ Testing & Debugging  
+- `GET /api/test/users`  
+- `GET /api/test/preferences`
+
+---
+
+## 🚧 Common Issues & Troubleshooting  
+
+**Q:** "Too many preferences" error when saving?  
+**A:** Backend limits the number of subjects. Select fewer subjects.
+
+**Q:** Firebase returns `"auth/too-many-requests"`?  
+**A:** Wait and retry later. UI will display `"Bro, slow down! Too many requests."`
+
+**Q:** Unable to login?  
+**A:** Verify you're using an `@cooper.edu` email and your password has at least 9 characters.
+
+---
+
+## ✏️ Development Notes  
+
+- Make sure backend and frontend configurations match Firebase and PostgreSQL credentials.
+- Frontend error messages are user-friendly—customize in React components as needed.
+- Run unit tests (Jest, React Testing Library) and integration tests (Spring Test) frequently.
+
+---
+
+## 📖 License  
+
+StudBuds is licensed under the [MIT License](LICENSE).
+
+---
+
+**Made with ❤️ at Cooper Union**
