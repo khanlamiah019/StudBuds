@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, signOut, createUserWithEmailAndPassword } from 'firebase/auth';
 
 const allowedMajors = [
   "Electrical Engineering",
@@ -49,6 +49,14 @@ function Signup() {
     setMessage('');
     setIsSubmitting(true);
     let token;
+    
+    // Ensure no user is currently signed in.
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.log("Sign-out error (ignorable):", err);
+    }
+    
     try {
       // Create the user in Firebase.
       const userCredential = await createUserWithEmailAndPassword(
@@ -66,7 +74,6 @@ function Signup() {
       // After successful signup, redirect to the login page.
       navigate('/login');
     } catch (error) {
-      // If the error indicates the email is already in use, display message and redirect to login.
       if (error.code === 'auth/email-already-in-use') {
         setMessage("User already exists. Please sign in.");
         navigate('/login');

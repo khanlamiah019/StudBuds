@@ -7,6 +7,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.cors.CorsConfigurationSource;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -14,21 +19,37 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        // We disable CSRF for simplicity
-        http.csrf().disable()
-                // Stateless session
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authorizeRequests()
-                  // Allow public (unauthenticated) access to signup & login
-                  .antMatchers("/api/auth/signup", "/api/auth/login").permitAll()
-                  // All other endpoints require auth
-                  .anyRequest().authenticated()
-                .and()
-                // Register our FirebaseAuthenticationFilter
-                .addFilterBefore(new FirebaseAuthenticationFilter(), 
-                                 UsernamePasswordAuthenticationFilter.class);
+        http
+            .cors()  // Enable CORS
+            .and()
+            .csrf().disable()
+            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and()
+            .authorizeRequests()
+                // Allow public access for signup and login endpoints
+                .antMatchers("/api/auth/signup", "/api/auth/login").permitAll()
+                // All other endpoints require authentication
+                .anyRequest().authenticated()
+            .and()
+            // Add our Firebase authentication filter
+            .addFilterBefore(new FirebaseAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    // Global CORS configuration
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        // Allowed origins: adjust as needed for your frontend URLs.
+        configuration.setAllowedOrigins(Arrays.asList("http://127.0.0.1:3000", "http://localhost:3000"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        // Apply CORS config to all endpoints.
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

@@ -32,8 +32,8 @@ public class MatchingService {
         
         // Narrow query based on major and year from the preference record
         List<Preference> narrowCandidates = preferenceRepository.findSimilarPreferences(
-                currentPref.getMajor(),
-                currentPref.getYear(),
+                currentUser.getMajor(),
+                currentUser.getYear(),
                 currentUser.getId()
         );
         

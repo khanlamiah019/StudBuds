@@ -11,23 +11,24 @@ function DeleteAccount({ userEmail, setUserId }) {
 
   const handleDelete = async () => {
     try {
-      // Get the Firebase token from the currently authenticated user.
+      // Get the Firebase token.
       const token = await auth.currentUser.getIdToken();
       const payload = { email: userEmail, firebaseToken: token };
 
       // Call the backend delete endpoint.
-      await axios.delete('/api/auth/delete', {
-        data: payload, // For DELETE requests, data is passed here.
+      await axios.delete('http://localhost:8080/api/auth/delete', {
+        data: payload,
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
       setMessage("Account deleted successfully.");
       setUserId(null);
-      // Optionally sign out the user from Firebase.
-      // Navigate back to the landing page.
-      navigate('/');
+      // Redirect to sign up page after deletion.
+      navigate('/signup');
     } catch (error) {
-      setMessage(error.response?.data || error.message || 'Account deletion failed.');
+      // If the error message is an object, stringify it.
+      const errMsg = error.response?.data || error.message || 'Account deletion failed.';
+      setMessage(typeof errMsg === 'object' ? JSON.stringify(errMsg) : errMsg);
     }
   };
 

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -34,40 +35,52 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
         User user = userOpt.get();
-        // Update basic user details (name and email)
+        // Update basic user details (name, email, major, and year)
         user.setName(updatedUser.getName());
         user.setEmail(updatedUser.getEmail());
+        user.setMajor(updatedUser.getMajor());
+        user.setYear(updatedUser.getYear());
         userRepository.save(user);
         return ResponseEntity.ok(user);
     }
 
     @PostMapping("/{userId}/preference")
-    public ResponseEntity<?> updatePreference(@PathVariable Long userId, @RequestBody Preference preferenceData) {
+    public ResponseEntity<?> updatePreference(@PathVariable Long userId, @RequestBody Map<String, Object> prefData) {
         Optional<User> userOpt = userRepository.findById(userId);
         if (!userOpt.isPresent()) {
             return ResponseEntity.notFound().build();
         }
         User user = userOpt.get();
+        
+        // Update major and year directly on the User
+        if (prefData.get("major") != null) {
+            user.setMajor((String) prefData.get("major"));
+        }
+        if (prefData.get("year") != null) {
+            user.setYear((String) prefData.get("year"));
+        }
+        userRepository.save(user);
+        
+        // Update or create the Preference record for the other fields.
         Optional<Preference> existingPreferenceOpt = preferenceRepository.findByUser(user);
         Preference preference;
         if (existingPreferenceOpt.isPresent()) {
-            // Update existing preference
             preference = existingPreferenceOpt.get();
-            preference.setAvailableDays(preferenceData.getAvailableDays());
-            preference.setSubjectsToLearn(preferenceData.getSubjectsToLearn());
-            preference.setSubjectsToTeach(preferenceData.getSubjectsToTeach());
-            preference.setMajor(preferenceData.getMajor());
-            preference.setYear(preferenceData.getYear());
         } else {
-            // Create new preference and associate with user
             preference = new Preference();
             preference.setUser(user);
-            preference.setAvailableDays(preferenceData.getAvailableDays());
-            preference.setSubjectsToLearn(preferenceData.getSubjectsToLearn());
-            preference.setSubjectsToTeach(preferenceData.getSubjectsToTeach());
-            preference.setMajor(preferenceData.getMajor());
-            preference.setYear(preferenceData.getYear());
         }
+        
+        if (prefData.get("availableDays") != null) {
+            preference.setAvailableDays((String) prefData.get("availableDays"));
+        }
+        if (prefData.get("subjectsToLearn") != null) {
+            preference.setSubjectsToLearn((String) prefData.get("subjectsToLearn"));
+        }
+        if (prefData.get("subjectsToTeach") != null) {
+            preference.setSubjectsToTeach((String) prefData.get("subjectsToTeach"));
+        }
+        
         Preference savedPreference = preferenceRepository.save(preference);
         return ResponseEntity.ok(savedPreference);
     }

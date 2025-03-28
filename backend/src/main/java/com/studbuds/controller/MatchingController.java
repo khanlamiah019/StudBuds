@@ -60,15 +60,20 @@ public class MatchingController {
         
         Optional<Match> existingMatch = matchRepository.findExistingMatch(user1, user2);
         if (existingMatch.isPresent()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("These users have already matched.");
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "You have already matched with this user.");
+            return ResponseEntity.ok(response);
         }
+        
         
         Optional<Swipe> existingSwipe = swipeRepository.findAll().stream()
                 .filter(swipe -> swipe.getFromUser().equals(user1) && swipe.getToUser().equals(user2))
                 .findFirst();
-        if (existingSwipe.isPresent()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("You have already swiped on this user.");
-        }
+                if (existingSwipe.isPresent()) {
+                    Map<String, String> response = new HashMap<>();
+                    response.put("message", "You have already swiped on this user.");
+                    return ResponseEntity.ok(response);
+                }
         
         Optional<Swipe> reciprocalSwipeOpt = swipeRepository.findAll().stream()
                 .filter(swipe -> swipe.getFromUser().equals(user2) && swipe.getToUser().equals(user1))

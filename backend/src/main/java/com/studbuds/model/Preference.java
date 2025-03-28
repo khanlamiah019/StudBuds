@@ -24,68 +24,22 @@ public class Preference {
 
     @Column(name = "subjects_to_teach")
     private String subjectsToTeach;
-    
-    @Column(name = "major")
-    private String major;
-    
-    @Column(name = "year")
-    private String year;
 
     public Preference() {}
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public String getAvailableDays() {
-        return availableDays;
-    }
-
-    public void setAvailableDays(String availableDays) {
-        this.availableDays = availableDays;
-    }
-
-    public String getSubjectsToLearn() {
-        return subjectsToLearn;
-    }
-
-    public void setSubjectsToLearn(String subjectsToLearn) {
-        this.subjectsToLearn = subjectsToLearn;
-    }
-
-    public String getSubjectsToTeach() {
-        return subjectsToTeach;
-    }
-
-    public void setSubjectsToTeach(String subjectsToTeach) {
-        this.subjectsToTeach = subjectsToTeach;
-    }
+    // Getters and setters:
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
     
-    public String getMajor() {
-        return major;
-    }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
     
-    public void setMajor(String major) {
-        this.major = major;
-    }
+    public String getAvailableDays() { return availableDays; }
+    public void setAvailableDays(String availableDays) { this.availableDays = availableDays; }
     
-    public String getYear() {
-        return year;
-    }
+    public String getSubjectsToLearn() { return subjectsToLearn; }
+    public void setSubjectsToLearn(String subjectsToLearn) { this.subjectsToLearn = subjectsToLearn; }
     
-    public void setYear(String year) {
-        this.year = year;
-    }
+    public String getSubjectsToTeach() { return subjectsToTeach; }
+    public void setSubjectsToTeach(String subjectsToTeach) { this.subjectsToTeach = subjectsToTeach; }
 }

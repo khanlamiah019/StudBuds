@@ -1,4 +1,3 @@
-// src/Login.js
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
@@ -16,29 +15,24 @@ function Login({ setUserId }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Attempting login with:", formData.email, formData.password);
     try {
-      // Sign in with Firebase
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        formData.email,
-        formData.password
-      );
+      const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
       const token = await userCredential.user.getIdToken();
-
-      // Call backend login endpoint
+      console.log("Firebase login successful. Token:", token);
       const response = await axios.post(
         '/api/auth/login',
         { firebaseToken: token },
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
-
       if (response.data && response.data.userId) {
         setUserId(response.data.userId);
-        navigate('/dashboard');
+        navigate('/matchlist');
       } else {
         setMessage("Login failed: userId not returned.");
       }
     } catch (error) {
+      console.error("Login error:", error);
       setMessage(error.response?.data || error.message || 'Login failed');
     }
   };

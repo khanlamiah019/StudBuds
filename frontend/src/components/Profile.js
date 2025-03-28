@@ -1,11 +1,16 @@
+// src/Profile.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import DeleteAccount from './DeleteAccount';
+import { getAuth } from 'firebase/auth';
 
-function Profile({ userId }) {
+function Profile({ userId, setUserId }) {
   const [confirmedMatches, setConfirmedMatches] = useState([]);
   const [pendingMatches, setPendingMatches] = useState([]);
   const [error, setError] = useState('');
+
+  const auth = getAuth();
+  const userEmail = auth.currentUser ? auth.currentUser.email : '';
 
   useEffect(() => {
     if (userId) {
@@ -21,7 +26,6 @@ function Profile({ userId }) {
     }
   }, [userId]);
 
-  // Return user's name; if missing, derive from email.
   const getUsername = (user) => {
     return user.name && user.name.trim() !== "" ? user.name : user.email.split('@')[0];
   };
@@ -53,6 +57,8 @@ function Profile({ userId }) {
       ) : (
         <p>No pending matches.</p>
       )}
+      
+      <DeleteAccount userEmail={userEmail} setUserId={setUserId} />
     </div>
   );
 }

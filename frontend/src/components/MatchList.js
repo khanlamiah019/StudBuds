@@ -6,25 +6,28 @@ import { useNavigate } from 'react-router-dom';
 function MatchList({ userId }) {
   const [matches, setMatches] = useState([]);
   const [error, setError] = useState('');
+  const [bottomMessage, setBottomMessage] = useState('');
   const navigate = useNavigate();
 
-  // Mapping of majors to cute animal emojis.
-  const cuteAnimalEmojiMap = {
-    "Electrical Engineering": "🐭",
-    "Mechanical Engineering": "🐱",
-    "Civil Engineering": "🐶",
-    "Chemical Engineering": "🐹",
-    "General Engineering": "🐻",
-    "Computer Science": "🦊"
-  };
+// Mapping of majors to cute animal emojis.
+const cuteAnimalEmojiMap = {
+  "electrical engineering": "🐭",
+  "mechanical engineering": "🐱",
+  "civil engineering": "🐶",
+  "chemical engineering": "🐹",
+  "general engineering": "🐻",
+  "computer science": "🦊"
+};
 
-  // Returns a cute animal emoji based on the user's major.
-  const getEngineerEmoji = (user) => {
-    if (user.major && cuteAnimalEmojiMap[user.major]) {
-      return cuteAnimalEmojiMap[user.major];
-    }
-    return "🐱"; // default emoji
-  };
+// Returns a cute animal emoji based on the user's major.
+const getEngineerEmoji = (user) => {
+  if (user.major) {
+    const normalizedMajor = user.major.trim().toLowerCase();
+    return cuteAnimalEmojiMap[normalizedMajor] || "🐱"; // default emoji
+  }
+  return "🐱";
+};
+
 
   // Fetch matches from backend and ensure we have an array.
   const fetchMatches = () => {
@@ -57,18 +60,28 @@ function MatchList({ userId }) {
   const onSwipe = (direction, matchUserId) => {
     if (direction === 'right') {
       axios.post(`/api/matches/swipe?user1Id=${userId}&user2Id=${matchUserId}`)
-        .then(() => {
+        .then(response => {
+          // Always remove the card.
           setMatches(prev => Array.isArray(prev) ? prev.filter(match => match.user.id !== matchUserId) : prev);
+          // If a message is returned, update bottomMessage; otherwise clear it.
+          if (response.data && response.data.message) {
+            setBottomMessage(response.data.message);
+          } else {
+            setBottomMessage('');
+          }
         })
         .catch(err => {
-          alert(err.response?.data || 'Error processing swipe.');
+          // Always remove the card even in error case.
+          setMatches(prev => Array.isArray(prev) ? prev.filter(match => match.user.id !== matchUserId) : prev);
+          setBottomMessage(err.response?.data || 'Error processing swipe.');
         });
     } else if (direction === 'left') {
+      // For a left swipe, remove the card and clear any message.
       setMatches(prev => Array.isArray(prev) ? prev.filter(match => match.user.id !== matchUserId) : prev);
+      setBottomMessage('');
     }
   };
-
-  const onCardLeftScreen = (matchUserId) => {
+    const onCardLeftScreen = (matchUserId) => {
     console.log(`Card for user ${matchUserId} left the screen`);
   };
 
@@ -187,6 +200,11 @@ function MatchList({ userId }) {
           </p>
         )}
       </div>
+      {bottomMessage && (
+        <p style={{ color: 'red', textAlign: 'center', marginTop: '1rem' }}>
+          {bottomMessage}
+        </p>
+      )}
     </div>
   );
 }

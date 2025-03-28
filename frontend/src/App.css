@@ -99,7 +99,7 @@ button:hover {
 
 /* Error messages */
 .error {
-  color: red;
+  color: blue;
   text-align: center;
   margin-top: 1rem;
 }

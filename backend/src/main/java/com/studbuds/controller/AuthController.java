@@ -45,19 +45,20 @@ public class AuthController {
             // Retrieve the Firebase user record (assumes the client already created the user).
             UserRecord userRecord = firebaseAuth.getUserByEmail(signupRequest.getEmail());
             
-            // Create the local user record.
+            // Create the local user record and store major/year directly.
             User user = new User();
             user.setName(signupRequest.getName());
             user.setEmail(signupRequest.getEmail());
             user.setFirebaseUid(userRecord.getUid());
             user.setCreatedAt(LocalDateTime.now());
+            user.setMajor(signupRequest.getMajor());
+            user.setYear(signupRequest.getYear());
             userRepository.save(user);
             
-            // Create and link the preference record.
+            // Create and link the preference record (for available days and subjects).
             Preference preference = new Preference();
             preference.setUser(user);
-            preference.setMajor(signupRequest.getMajor());
-            preference.setYear(signupRequest.getYear());
+            // Other fields can be empty or default.
             preference.setAvailableDays("");
             preference.setSubjectsToLearn("");
             preference.setSubjectsToTeach("");
@@ -75,7 +76,6 @@ public class AuthController {
         }
     }
     
-
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
@@ -84,15 +84,10 @@ public class AuthController {
             String email = decodedToken.getEmail();
             Optional<User> userOptional = userRepository.findByEmail(email);
             
-            // If local user record is not found, create it automatically.
+            // If local user record is not found, the user must sign up first.
             if (!userOptional.isPresent()) {
-                User user = new User();
-                user.setEmail(email);
-                user.setFirebaseUid(decodedToken.getUid());
-                user.setName(decodedToken.getName() != null ? decodedToken.getName() : email.split("@")[0]);
-                user.setCreatedAt(LocalDateTime.now());
-                userRepository.save(user);
-                userOptional = Optional.of(user);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("No local account found. Please sign up before logging in.");
             }
             
             User user = userOptional.get();
@@ -104,7 +99,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Invalid Firebase token.");
         }
-    }
+    }    
 
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteAccount(@RequestBody DeleteAccountRequest deleteAccountRequest) {
