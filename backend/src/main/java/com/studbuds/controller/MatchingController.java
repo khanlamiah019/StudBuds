@@ -33,7 +33,6 @@ public class MatchingController {
     @Autowired
     private SwipeRepository swipeRepository;
 
-    // Existing endpoint to get matching suggestions.
     @GetMapping("/find/{userId}")
     public ResponseEntity<?> findMatches(@PathVariable Long userId) {
         Optional<User> userOpt = userRepository.findById(userId);
@@ -48,12 +47,6 @@ public class MatchingController {
         return ResponseEntity.ok(matches);
     }
 
-    /**
-     * New endpoint for swiping.
-     * When a user swipes right on another user:
-     * - If the other user has already swiped right (pending swipe exists), a match is created.
-     * - Otherwise, a new pending swipe record is created.
-     */
     @PostMapping("/swipe")
     public ResponseEntity<?> swipe(@RequestParam("user1Id") Long user1Id,
                                    @RequestParam("user2Id") Long user2Id) {
@@ -62,32 +55,31 @@ public class MatchingController {
         if (!user1Opt.isPresent() || !user2Opt.isPresent()) {
             return ResponseEntity.badRequest().body("One or both users not found.");
         }
-        User user1 = user1Opt.get(); // Current user swiping right.
-        User user2 = user2Opt.get(); // Target user.
-    
-        // Check if a confirmed match already exists.
+        User user1 = user1Opt.get();
+        User user2 = user2Opt.get();
+        
         Optional<Match> existingMatch = matchRepository.findExistingMatch(user1, user2);
         if (existingMatch.isPresent()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("These users have already matched.");
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "You have already matched with this user.");
+            return ResponseEntity.ok(response);
         }
-    
-        // Check if user1 has already swiped right on user2.
+        
+        
         Optional<Swipe> existingSwipe = swipeRepository.findAll().stream()
                 .filter(swipe -> swipe.getFromUser().equals(user1) && swipe.getToUser().equals(user2))
                 .findFirst();
-        if (existingSwipe.isPresent()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("You have already swiped on this user.");
-        }
-    
-        // Check if the other user (user2) has already swiped right on user1.
+                if (existingSwipe.isPresent()) {
+                    Map<String, String> response = new HashMap<>();
+                    response.put("message", "You have already swiped on this user.");
+                    return ResponseEntity.ok(response);
+                }
+        
         Optional<Swipe> reciprocalSwipeOpt = swipeRepository.findAll().stream()
                 .filter(swipe -> swipe.getFromUser().equals(user2) && swipe.getToUser().equals(user1))
                 .findFirst();
-    
+        
         if (reciprocalSwipeOpt.isPresent()) {
-            // Reciprocal swipe found: Remove the pending swipe and create a confirmed match.
             swipeRepository.delete(reciprocalSwipeOpt.get());
             Match match = new Match();
             match.setUser1(user1);
@@ -96,7 +88,6 @@ public class MatchingController {
             matchRepository.save(match);
             return ResponseEntity.ok(match);
         } else {
-            // No reciprocal swipe exists: Record this swipe as pending.
             Swipe swipe = new Swipe();
             swipe.setFromUser(user1);
             swipe.setToUser(user2);
@@ -105,9 +96,6 @@ public class MatchingController {
         }
     }
     
-    // Existing endpoints (if any) remain here.
-
-    // For example, your profile endpoint for confirmed and pending matches.
     @GetMapping("/profile/{userId}")
     public ResponseEntity<?> getProfileMatches(@PathVariable Long userId) {
         Optional<User> userOpt = userRepository.findById(userId);
