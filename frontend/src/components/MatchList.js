@@ -201,7 +201,7 @@ const getEngineerEmoji = (user) => {
         )}
       </div>
       {bottomMessage && (
-        <p style={{ color: 'red', textAlign: 'center', marginTop: '1rem' }}>
+        <p style={{ color: 'blue', textAlign: 'center', marginTop: '1rem' }}>
           {bottomMessage}
         </p>
       )}

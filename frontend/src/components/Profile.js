@@ -33,7 +33,7 @@ function Profile({ userId, setUserId }) {
   return (
     <div style={{ padding: '1rem' }}>
       <h2>Your Profile</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p style={{ color: 'blue' }}>{error}</p>}
       
       <h3>People Matched With</h3>
       {confirmedMatches.length > 0 ? (

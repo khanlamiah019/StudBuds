@@ -5,73 +5,51 @@ import { useNavigate } from 'react-router-dom';
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 const SUBJECTS = [
-  "Calculus 1", "Calculus 2", "Vector Calculus", "Differential Equations", "Linear Algebra", "Probability", 
-  "Physics 1", "Physics 2", "Physics 3", "General Chemistry", "Organic Chemistry", "Biochemistry", 
+  "Calculus", "Differential Equations", "Linear Algebra", "Probability",
+  "Physics", "General Chemistry", "Organic Chemistry", "Biochemistry",
   "Electronics I", "Electronics II", "Digital Logic", "Computer Architecture", "Data Structures and Algorithms",
-  "Operating Systems", "Computer Networks", "Software Engineering", 
+  "Operating Systems", "Computer Networks", "Software Engineering",
   "Concrete Structures", "Steel Structures", "Transportation Engineering", "Environmental Engineering",
   "Thermodynamics", "Fluid Mechanics", "Heat Transfer", "Mechanical Design", "Manufacturing Processes"
 ];
 
 function UpdatePreference({ userId }) {
+  const navigate = useNavigate();
   const [selectedDays, setSelectedDays] = useState([]);
-  const [selectedLearnSubjects, setSelectedLearnSubjects] = useState([]);
-  const [selectedTeachSubjects, setSelectedTeachSubjects] = useState([]);
+  const [subjectStates, setSubjectStates] = useState(() =>
+    SUBJECTS.reduce((acc, subject) => ({ ...acc, [subject]: "none" }), {})
+  );
   const [message, setMessage] = useState('');
-  
-  const navigate = useNavigate(); // Added to enable navigation
 
-  const containerStyle = {
-    maxWidth: '600px',
-    margin: '2rem auto',
-    padding: '2rem'
+  const handleDayClick = (day) => {
+    setSelectedDays(prev =>
+      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+    );
   };
 
-  const fieldsetStyle = {
-    marginBottom: '1.5rem',
-    padding: '1rem',
-    border: '1px solid #ddd',
-    borderRadius: '6px'
-  };
-
-  const legendStyle = {
-    marginBottom: '0.5rem',
-    fontWeight: 'bold'
-  };
-
-  const listStyle = {
-    listStyle: 'none',
-    paddingLeft: 0,
-    margin: 0
-  };
-
-  const labelStyle = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '0.1rem',
-    marginBottom: '0.5rem',
-    fontSize: '0.9rem',
-    color: '#555'
-  };
-
-  const handleCheckboxChange = (option, stateArray, setter) => {
-    if (stateArray.includes(option)) {
-      setter(stateArray.filter(item => item !== option));
-    } else {
-      setter([...stateArray, option]);
-    }
+  const setSubjectState = (subject, newState) => {
+    setSubjectStates(prev => ({ ...prev, [subject]: newState }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    const subjectsToLearn = [];
+    const subjectsToTeach = [];
+
+    Object.entries(subjectStates).forEach(([subject, state]) => {
+      if (state === "learn") subjectsToLearn.push(subject);
+      if (state === "teach") subjectsToTeach.push(subject);
+    });
+
     const preferenceData = {
       availableDays: selectedDays.join(', '),
-      subjectsToLearn: selectedLearnSubjects.join(', '),
-      subjectsToTeach: selectedTeachSubjects.join(', ')
+      subjectsToLearn: subjectsToLearn.join(', '),
+      subjectsToTeach: subjectsToTeach.join(', ')
     };
+
     axios.post(`/api/user/${userId}/preference`, preferenceData)
       .then(() => {
-        // On successful update, navigate directly to the match page
         setMessage('Preference updated successfully.');
         navigate('/matchlist');
       })
@@ -85,72 +63,147 @@ function UpdatePreference({ userId }) {
       });
   };
 
+
+  const styles = {
+    container: {
+      width: '90%',
+      margin: '0 auto',
+      padding: '2rem 0',
+    },
+    heading: {
+      textAlign: 'center',
+      marginBottom: '2rem'
+    },
+    fieldset: {
+      marginBottom: '2rem',
+      padding: '1.5rem',
+      border: '1px solid #ccc',
+      borderRadius: '6px'
+    },
+    legend: {
+      fontWeight: 'bold',
+      marginBottom: '1rem'
+    },
+    dayPillContainer: {
+      display: 'flex',
+      flexWrap: 'wrap',
+      justifyContent: 'center',
+      gap: '12px',
+      marginTop: '1rem'
+    },
+    dayPill: (selected) => ({
+      padding: '10px 16px',
+      borderRadius: '20px',
+      backgroundColor: selected ? '#5ccdc1' : '#f5f5f5',
+      border: '1px solid #ccc',
+      color: selected ? 'white' : '#333',
+      fontWeight: selected ? 'bold' : 'normal',
+      cursor: 'pointer',
+      transition: 'all 0.2s ease',
+      userSelect: 'none'
+    }),
+    subjectRow: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '8px 0',
+      borderBottom: '1px solid #eee'
+    },
+    subjectName: {
+      flex: 1,
+      fontSize: '0.95rem'
+    },
+    switchWrapper: {
+      width: '180px',
+      height: '36px',
+      borderRadius: '18px',
+      backgroundColor: '#e5e7eb',
+      position: 'relative',
+      display: 'flex',
+      overflow: 'hidden',
+      boxShadow: 'inset 0 0 5px rgba(0,0,0,0.1)'
+    },
+    switchZone: {
+      flex: 1,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '0.85rem',
+      fontWeight: 500,
+      color: '#333',
+      cursor: 'pointer',
+      zIndex: 2
+    },
+    switchCircle: (state) => ({
+      position: 'absolute',
+      height: '28px',
+      width: '60px',
+      borderRadius: '14px',
+      backgroundColor:
+        state === "learn" ? '#7dd3fc' :
+        state === "teach" ? '#38bdf8' :
+        '#cbd5e1',
+      top: '4px',
+      left: state === "learn" ? '4px' : state === "teach" ? '116px' : '60px',
+      transition: 'left 0.25s ease, background-color 0.25s ease',
+      zIndex: 1
+    }),
+    buttonContainer: {
+      textAlign: 'center',
+      marginTop: '2rem'
+    },
+    error: {
+      color: 'blue',
+      textAlign: 'center',
+      marginTop: '1rem'
+    }
+  };
+
   return (
-    <div style={containerStyle}>
-      <h2 style={{ textAlign: 'center', marginBottom: '1.5rem' }}>Update Your Preferences</h2>
+    <div style={styles.container}>
+      <h2 style={styles.heading}>Update Preferences</h2>
       <form onSubmit={handleSubmit}>
-        <fieldset style={fieldsetStyle}>
-          <legend style={legendStyle}>Available Days</legend>
-          <ul style={listStyle}>
+        <fieldset style={styles.fieldset}>
+          <legend style={styles.legend}>Available Days</legend>
+          <div style={styles.dayPillContainer}>
             {DAYS.map(day => (
-              <li key={day}>
-                <label style={labelStyle}>
-                  <input
-                    type="checkbox"
-                    value={day}
-                    checked={selectedDays.includes(day)}
-                    onChange={() => handleCheckboxChange(day, selectedDays, setSelectedDays)}
-                  />
-                  {day}
-                </label>
-              </li>
+              <span
+                key={day}
+                style={styles.dayPill(selectedDays.includes(day))}
+                onClick={() => handleDayClick(day)}
+              >
+                {day}
+              </span>
             ))}
-          </ul>
+          </div>
         </fieldset>
 
-        <fieldset style={fieldsetStyle}>
-          <legend style={legendStyle}>Subjects to Learn</legend>
-          <ul style={listStyle}>
-            {SUBJECTS.map(subject => (
-              <li key={subject}>
-                <label style={labelStyle}>
-                  <input
-                    type="checkbox"
-                    value={subject}
-                    checked={selectedLearnSubjects.includes(subject)}
-                    onChange={() => handleCheckboxChange(subject, selectedLearnSubjects, setSelectedLearnSubjects)}
-                  />
-                  {subject}
-                </label>
-              </li>
-            ))}
-          </ul>
+        <fieldset style={styles.fieldset}>
+          <legend style={styles.legend}>Subject Preferences</legend>
+          {SUBJECTS.map(subject => (
+            <div key={subject} style={styles.subjectRow}>
+              <span style={styles.subjectName}>{subject}</span>
+              <div style={styles.switchWrapper}>
+                <div style={styles.switchCircle(subjectStates[subject])} />
+                <div style={styles.switchZone} onClick={() => setSubjectState(subject, 'learn')}>
+                  Learn
+                </div>
+                <div style={styles.switchZone} onClick={() => setSubjectState(subject, 'none')}>
+                  None
+                </div>
+                <div style={styles.switchZone} onClick={() => setSubjectState(subject, 'teach')}>
+                  Teach
+                </div>
+              </div>
+            </div>
+          ))}
         </fieldset>
 
-        <fieldset style={fieldsetStyle}>
-          <legend style={legendStyle}>Subjects to Teach</legend>
-          <ul style={listStyle}>
-            {SUBJECTS.map(subject => (
-              <li key={subject}>
-                <label style={labelStyle}>
-                  <input
-                    type="checkbox"
-                    value={subject}
-                    checked={selectedTeachSubjects.includes(subject)}
-                    onChange={() => handleCheckboxChange(subject, selectedTeachSubjects, setSelectedTeachSubjects)}
-                  />
-                  {subject}
-                </label>
-              </li>
-            ))}
-          </ul>
-        </fieldset>
-
-        <div style={{ textAlign: 'center' }}>
+        <div style={styles.buttonContainer}>
           <button type="submit">Update Preference</button>
         </div>
       </form>
-      {message && <p style={{ color: 'red', marginTop: '1rem', textAlign: 'center' }}>{message}</p>}
+      {message && <p style={styles.error}>{message}</p>}
     </div>
   );
 }

@@ -36,7 +36,7 @@ function DeleteAccount({ userEmail, setUserId }) {
     <div style={{ textAlign: 'center', marginTop: '2rem' }}>
       <h2>Delete Account</h2>
       <button onClick={handleDelete}>Delete Account</button>
-      {message && <p style={{ color: 'red' }}>{message}</p>}
+      {message && <p style={{ color: 'blue' }}>{message}</p>}
     </div>
   );
 }

@@ -29,11 +29,15 @@ function Login({ setUserId }) {
         setUserId(response.data.userId);
         navigate('/matchlist');
       } else {
-        setMessage("Login failed: userId not returned.");
+        setMessage("Login failed");
       }
     } catch (error) {
       console.error("Login error:", error);
-      setMessage(error.response?.data || error.message || 'Login failed');
+      if (error.code === 'auth/invalid-credential') {
+        setMessage('Username or Password Not Found');
+      } else {
+        setMessage(error.response?.data || error.message || 'Login failed');
+      }
     }
   };
 
@@ -59,7 +63,7 @@ function Login({ setUserId }) {
         /><br/><br/>
         <button type="submit">Log In</button>
       </form>
-      {message && <p style={{ color: 'red' }}>{message}</p>}
+      {message && <p style={{ color: 'blue' }}>{message}</p>}
       <p>
         Need to create an account? <Link to="/signup">Sign up here</Link>
       </p>

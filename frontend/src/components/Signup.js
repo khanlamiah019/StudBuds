@@ -133,7 +133,7 @@ function Signup() {
       </form>
       {message && (
         <div style={{ marginTop: '1rem', textAlign: 'center' }}>
-          <p style={{ color: 'red' }}>{message}</p>
+          <p style={{ color: 'blue' }}>{message}</p>
         </div>
       )}
       <p style={{ marginTop: '1rem' }}>
