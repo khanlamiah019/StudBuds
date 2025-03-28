@@ -6,8 +6,9 @@ const Card = ({ children, className }) => (
 
 const CardContent = ({ children }) => <div className="p-4">{children}</div>;
 
-const Button = ({ children, onClick, variant }) => (
+const Button = ({ children, onClick, variant, type = "button" }) => (
   <button
+    type={type}
     onClick={onClick}
     className={`px-4 py-2 rounded-lg text-white transition-all font-semibold ${
       variant === "destructive" ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"
@@ -29,13 +30,17 @@ const Input = ({ name, value, onChange, type = "text" }) => (
 
 const Label = ({ children }) => <label className="block font-semibold mb-1 text-green-800">{children}</label>;
 
-const Textarea = ({ name, value, onChange }) => (
-  <textarea
+const Select = ({ name, value, onChange, options }) => (
+  <select
     name={name}
     value={value}
     onChange={onChange}
     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400"
-  />
+  >
+    {options.map((option, index) => (
+      <option key={index} value={option}>{option}</option>
+    ))}
+  </select>
 );
 
 const ProfilePage = () => {
@@ -45,9 +50,13 @@ const ProfilePage = () => {
     major: "",
     strengths: "",
     weaknesses: "",
-    availableTimes: "",
+    day: "Monday",
+    time: "12 AM",
     gradeLevel: "1st Year"
   });
+
+  const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const timeSlots = Array.from({ length: 24 }, (_, i) => `${i === 0 ? 12 : i % 12} ${i < 12 ? "AM" : "PM"}`);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -81,30 +90,28 @@ const ProfilePage = () => {
             </div>
             <div>
               <Label>Strengths</Label>
-              <Textarea name="strengths" value={profile.strengths} onChange={handleChange} />
+              <Input name="strengths" value={profile.strengths} onChange={handleChange} />
             </div>
             <div>
               <Label>Weaknesses</Label>
-              <Textarea name="weaknesses" value={profile.weaknesses} onChange={handleChange} />
+              <Input name="weaknesses" value={profile.weaknesses} onChange={handleChange} />
             </div>
             <div>
-              <Label>Available Times</Label>
-              <Textarea name="availableTimes" value={profile.availableTimes} onChange={handleChange} />
+              <Label>Available Day</Label>
+              <Select name="day" value={profile.day} onChange={handleChange} options={daysOfWeek} />
+            </div>
+            <div>
+              <Label>Available Time</Label>
+              <Select name="time" value={profile.time} onChange={handleChange} options={timeSlots} />
             </div>
             <div>
               <Label>Grade Level</Label>
-              <select
+              <Select
                 name="gradeLevel"
                 value={profile.gradeLevel}
                 onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400"
-              >
-                <option>1st Year</option>
-                <option>2nd Year</option>
-                <option>3rd Year</option>
-                <option>4th Year</option>
-                <option>5th Year</option>
-              </select>
+                options={["1st Year", "2nd Year", "3rd Year", "4th Year", "5th Year"]}
+              />
             </div>
             <div className="flex justify-between mt-4">
               <Button type="submit">Submit</Button>
