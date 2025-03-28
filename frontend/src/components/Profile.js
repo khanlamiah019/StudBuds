@@ -7,6 +7,7 @@ import { getAuth } from 'firebase/auth';
 function Profile({ userId, setUserId }) {
   const [confirmedMatches, setConfirmedMatches] = useState([]);
   const [pendingMatches, setPendingMatches] = useState([]);
+  const [userInfo, setUserInfo] = useState({});
   const [error, setError] = useState('');
 
   const auth = getAuth();
@@ -23,41 +24,126 @@ function Profile({ userId, setUserId }) {
         .catch(err => {
           setError(err.response?.data || 'Error fetching profile matches.');
         });
+
+      // Fetch User Info
+      axios.get(`/api/user/${userId}`)
+        .then(response => {
+          setUserInfo(response.data);
+          setError('');
+        })
+        .catch(err => {
+          setError(err.response?.data || 'Error fetching user information.');
+        });
     }
   }, [userId]);
 
   const getUsername = (user) => {
-    return user.name && user.name.trim() !== "" ? user.name : user.email.split('@')[0];
+    if (user) {
+      if (user.name && user.name.trim() !== "") {
+        return user.name;
+      } else if (user.email) {
+        return user.email.split('@')[0];
+      }
+    }
+    return "Unknown User";
+  };
+
+  const styles = {
+    container: {
+      maxWidth: '700px',
+      margin: '2rem auto',
+      padding: '2rem',
+      backgroundColor: '#ffffff',
+      boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
+      borderRadius: '16px',
+      fontFamily: 'Arial, sans-serif',
+      color: '#2c6e6a'
+    },
+    heading: {
+      textAlign: 'center',
+      marginBottom: '1.5rem',
+      color: '#5ccdc1'
+    },
+    sectionTitle: {
+      marginTop: '2rem',
+      marginBottom: '1rem',
+      color: '#2c6e6a',
+      borderBottom: '2px solid #5ccdc1',
+      display: 'inline-block',
+      paddingBottom: '0.3rem'
+    },
+    userInfoCard: {
+      backgroundColor: '#e0f7fa',
+      borderRadius: '12px',
+      padding: '1rem',
+      marginBottom: '0.8rem',
+      boxShadow: '0 4px 8px rgba(0,0,0,0.05)'
+    },
+    matchCard: {
+      backgroundColor: '#f5f5f5',
+      borderRadius: '12px',
+      padding: '1rem',
+      marginBottom: '0.8rem',
+      boxShadow: '0 4px 8px rgba(0,0,0,0.05)'
+    },
+    matchName: {
+      margin: '0',
+      fontWeight: 'bold',
+      fontSize: '1rem',
+      color: '#333'
+    },
+    matchEmail: {
+      margin: '0.25rem 0 0',
+      fontSize: '0.9rem',
+      color: '#555'
+    },
+    noMatches: {
+      fontStyle: 'italic',
+      color: '#999'
+    },
+    error: {
+      color: 'red',
+      textAlign: 'center',
+      marginTop: '1rem'
+    }
   };
 
   return (
-    <div style={{ padding: '1rem' }}>
-      <h2>Your Profile</h2>
-      {error && <p style={{ color: 'blue' }}>{error}</p>}
-      
-      <h3>People Matched With</h3>
+    <div style={styles.container}>
+      <h2 style={styles.heading}>Your Profile</h2>
+
+      {error && <p style={styles.error}>{error}</p>}
+
+      <div style={styles.userInfoCard}>
+        <p><strong>Name:</strong> {userInfo.name || 'N/A'}</p>
+        <p><strong>Email:</strong> {userInfo.email || 'N/A'}</p>
+        <p><strong>Major:</strong> {userInfo.major || 'N/A'}</p>
+        <p><strong>Year:</strong> {userInfo.year || 'N/A'}</p>
+      </div>
+
+      <h3 style={styles.sectionTitle}>People Matched With</h3>
       {confirmedMatches.length > 0 ? (
         confirmedMatches.map(user => (
-          <div key={user.id} style={{ border: '1px solid #ccc', padding: '0.5rem', margin: '0.5rem 0' }}>
-            <p style={{ margin: '0', fontWeight: 'bold' }}>{getUsername(user)}</p>
-            <p style={{ margin: '0' }}>{user.email}</p>
+          <div key={user.id} style={styles.matchCard}>
+            <p style={styles.matchName}>{getUsername(user)}</p>
+            <p style={styles.matchEmail}>{user.email}</p>
           </div>
         ))
       ) : (
-        <p>No confirmed matches yet.</p>
+        <p style={styles.noMatches}>No confirmed matches yet.</p>
       )}
-      
-      <h3>Matches in Progress</h3>
+
+      <h3 style={styles.sectionTitle}>Matches in Progress</h3>
       {pendingMatches.length > 0 ? (
         pendingMatches.map(user => (
-          <div key={user.id} style={{ border: '1px solid #ccc', padding: '0.5rem', margin: '0.5rem 0' }}>
-            <p style={{ margin: '0', fontWeight: 'bold' }}>{getUsername(user)}</p>
+          <div key={user.id} style={styles.matchCard}>
+            <p style={styles.matchName}>{getUsername(user)}</p>
           </div>
         ))
       ) : (
-        <p>No pending matches.</p>
+        <p style={styles.noMatches}>No pending matches.</p>
       )}
-      
+
       <DeleteAccount userEmail={userEmail} setUserId={setUserId} />
     </div>
   );

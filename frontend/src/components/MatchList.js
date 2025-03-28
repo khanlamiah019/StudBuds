@@ -136,10 +136,12 @@ const getEngineerEmoji = (user) => {
 
   const usernameStyle = {
     fontSize: '1.8rem',
-    fontWeight: 'bold',
+    fontWeight: '600',
     marginBottom: '0.5rem',
     color: '#ffffff',
-    WebkitTextStroke: '1px #5ccdc1'
+    letterSpacing: '1px',
+    textShadow: '0px 1px 3px rgba(0,0,0,0.3)',
+    textAlign: 'center'
   };
 
   const emojiStyle = {
@@ -152,7 +154,7 @@ const getEngineerEmoji = (user) => {
     backgroundColor: '#5ccdc1',
     color: '#fff',
     border: 'none',
-    borderRadius: '4px',
+    borderRadius: '25px',
     cursor: 'pointer',
     marginTop: '0.5rem',
     marginRight: '0.5rem'
@@ -187,8 +189,8 @@ const getEngineerEmoji = (user) => {
                   <p><strong>Common Days:</strong> {match.commonDays.join(', ')}</p>
                   <p><strong>Common Subjects:</strong> {match.commonSubjects.join(', ')}</p>
                   <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-                    <button className="pressable" style={buttonStyle} onClick={() => onSwipe('left', match.user.id)}>Swipe Left</button>
-                    <button className="pressable" style={buttonStyle} onClick={() => onSwipe('right', match.user.id)}>Swipe Right</button>
+                    <button className="pressable" style={buttonStyle} onClick={() => onSwipe('left', match.user.id)}>✖️</button>
+                    <button className="pressable" style={buttonStyle} onClick={() => onSwipe('right', match.user.id)}>✔️</button>
                   </div>
                 </div>
               </div>
