@@ -35,10 +35,13 @@ function Login({ setUserId }) {
       console.error("Login error:", error);
       if (error.code === 'auth/invalid-credential') {
         setMessage('Username or Password Not Found');
+      } else if (error.code === 'auth/too-many-requests') {
+        setMessage('Bro, slow down! Too many requests');
       } else {
         setMessage(error.response?.data || error.message || 'Login failed');
       }
     }
+    
   };
 
   return (
