@@ -45,16 +45,23 @@ function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+  
+    // Check that the email address is a cooper.edu email
+    if (!formData.email.toLowerCase().endsWith('@cooper.edu')) {
+      setMessage("Please use a cooper.edu email address.");
+      return;
+    }
+  
     setMessage('');
     setIsSubmitting(true);
     let token;
-
+  
     try {
       await signOut(auth);
     } catch (err) {
       console.log("Sign-out error (ignorable):", err);
     }
-
+  
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -62,11 +69,11 @@ function Signup() {
         formData.password
       );
       token = await userCredential.user.getIdToken();
-
+  
       await axios.post('/api/auth/signup', formData, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-
+  
       navigate('/login');
     } catch (error) {
       if (error.code === 'auth/email-already-in-use') {
@@ -78,7 +85,7 @@ function Signup() {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  };  
 
   const styles = {
     container: {
