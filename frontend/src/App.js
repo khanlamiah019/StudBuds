@@ -19,7 +19,7 @@ function App() {
       {/* Header */}
       <div className="header">
         <img src="/logo.png" alt="StudBud Logo" />
-        <h1>StudBud</h1>
+        <h1>StudBuds</h1>
       </div>
 
       {userId && (

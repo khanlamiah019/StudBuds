@@ -17,16 +17,15 @@ body {
   color: var(--secondary-color);
 }
 
-/* Header styles */
+/* Header styles: white */
 .header {
   display: flex;
   align-items: center;
-  justify-content: center; 
+  justify-content: center;
   padding: 1rem;
-  background-color: var(--primary-color);
-  gap: 1rem; 
+  background-color: var(--card-background); /* White */
+  gap: 1rem;
 }
-
 
 .header img {
   height: 50px;
@@ -36,19 +35,22 @@ body {
 .header h1 {
   margin: 0;
   font-size: 1.8rem;
-  color: var(--card-background);
+  color: var(--secondary-color); /* Dark accent for contrast on white */
 }
 
-/* Navigation styles */
+/* Navigation styles: teal bar, centered buttons */
 nav {
-  background-color: var(--card-background);
+  background-color: var(--primary-color); /* Teal */
   box-shadow: 0 2px 4px var(--shadow-color);
-  padding: 0.5rem 1rem;
+  /* Fixed height so items can be vertically centered */
+  height: 60px;
+  display: flex;
+  justify-content: center; /* horizontally center items */
+  align-items: center;     /* vertically center items */
 }
 
 nav ul {
   display: flex;
-  justify-content: center; 
   gap: 1rem;
   list-style: none;
   margin: 0;
@@ -58,7 +60,7 @@ nav ul {
 nav a,
 nav button {
   text-decoration: none;
-  color: var(--secondary-color);
+  color: var(--card-background); /* white text on teal */
   padding: 0.4rem 0.8rem;
   border-radius: 4px;
   cursor: pointer;
@@ -67,19 +69,18 @@ nav button {
 
 nav a:hover,
 nav button:hover {
-  background-color: var(--primary-color);
-  color: var(--card-background);
+  background-color: var(--card-background);
+  color: var(--primary-color);
 }
 
-/* Main container for pages */
-
+/* Main container for pages (if any) */
 
 /* Headings */
 h2, h3 {
   color: var(--secondary-color);
 }
 
-/* Buttons */
+/* Buttons (general) */
 button {
   background-color: var(--primary-color);
   color: var(--card-background);
@@ -106,6 +107,10 @@ button:hover {
   .container {
     max-width: 90vw;
     padding: 1rem;
+  }
+
+  nav {
+    height: auto; 
   }
 
   nav ul {
