@@ -7,12 +7,12 @@ const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
 
 /* Subject array with categories */
 const SUBJECTS_WITH_CATEGORIES = [
-  // Math/Other
-  { name: "Calculus", category: "Math/Other" },
-  { name: "Differential Equations", category: "Math/Other" },
-  { name: "Linear Algebra", category: "Math/Other" },
-  { name: "Probability", category: "Math/Other" },
-  { name: "Physics", category: "Math/Other" },
+  // Math
+  { name: "Calculus", category: "Math" },
+  { name: "Differential Equations", category: "Math" },
+  { name: "Linear Algebra", category: "Math" },
+  { name: "Probability", category: "Math" },
+  { name: "Discrete Math", category: "Math" },
 
   // Chemical
   { name: "General Chemistry", category: "Chemical" },
@@ -20,12 +20,13 @@ const SUBJECTS_WITH_CATEGORIES = [
   { name: "Biochemistry", category: "Chemical" },
 
   // Electrical
-  { name: "Electronics I", category: "Electrical" },
-  { name: "Electronics II", category: "Electrical" },
-  { name: "Digital Logic", category: "Electrical" },
+  { name: "Circuits", category: "Electrical" },
+  { name: "Electronics", category: "Electrical" },
+  { name: "Digital Logic Design", category: "Electrical" },
   { name: "Computer Architecture", category: "Electrical" },
 
   // Computer Science
+  { name: "Computer Science 101", category: "Computer Science" },
   { name: "Data Structures and Algorithms", category: "Computer Science" },
   { name: "Operating Systems", category: "Computer Science" },
   { name: "Computer Networks", category: "Computer Science" },
@@ -42,10 +43,15 @@ const SUBJECTS_WITH_CATEGORIES = [
   { name: "Fluid Mechanics", category: "Mechanical" },
   { name: "Heat Transfer", category: "Mechanical" },
   { name: "Mechanical Design", category: "Mechanical" },
-  { name: "Manufacturing Processes", category: "Mechanical" }
+  { name: "Manufacturing Processes", category: "Mechanical" },
+
+  // Physics
+  { name: "Classical Mechanics", category: "Physics" },
+  { name: "Electromagnetism", category: "Physics" },
+  { name: "Quantum Mechanics", category: "Physics" },
+  { name: "Optics", category: "Physics" }
 ];
 
-/* You can define categories in a list or extract them from the data dynamically. */
 const CATEGORIES = [
   "All",
   "Civil",
@@ -53,7 +59,8 @@ const CATEGORIES = [
   "Electrical",
   "Mechanical",
   "Computer Science",
-  "Math/Other"
+  "Math",
+  "Physics"
 ];
 
 function UpdatePreference({ userId }) {
@@ -123,7 +130,6 @@ function UpdatePreference({ userId }) {
       });
   };
 
-  /* Inline styles for quick custom UI */
   const styles = {
     container: {
       maxWidth: '30vw',
@@ -142,12 +148,30 @@ function UpdatePreference({ userId }) {
       marginBottom: '2rem',
       padding: '1.5rem',
       border: '1px solid #ccc',
-      borderRadius: '6px'
+      borderRadius: '6px',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center', 
+      minHeight: '200px',
+      textAlign: 'left'
     },
     legend: {
       fontWeight: 'bold',
-      marginBottom: '1rem'
+      marginBottom: '1rem',
+      textAlign: 'center'
     },
+
+    dayPill: (selected) => ({
+      padding: '10px 16px',
+      borderRadius: '20px',
+      backgroundColor: selected ? '#5ccdc1' : '#f5f5f5',
+      border: '1px solid #ccc',
+      color: selected ? 'white' : '#333',
+      fontWeight: 'normal',
+      cursor: 'pointer',
+      transition: 'all 0.2s ease',
+      userSelect: 'none'
+    }),
     dayPillContainer: {
       display: 'flex',
       flexWrap: 'wrap',
@@ -155,17 +179,6 @@ function UpdatePreference({ userId }) {
       gap: '12px',
       marginTop: '1rem'
     },
-    dayPill: (selected) => ({
-      padding: '10px 16px',
-      borderRadius: '20px',
-      backgroundColor: selected ? '#5ccdc1' : '#f5f5f5',
-      border: '1px solid #ccc',
-      color: selected ? 'white' : '#333',
-      fontWeight: selected ? 'normal' : 'normal',
-      cursor: 'pointer',
-      transition: 'all 0.2s ease',
-      userSelect: 'none'
-    }),
     subjectRow: {
       display: 'flex',
       justifyContent: 'space-between',
@@ -204,14 +217,13 @@ function UpdatePreference({ userId }) {
       width: '60px',
       borderRadius: '14px',
       backgroundColor:
-        state === "learn"  ? '#7dd3fc' :
-        state === "teach"  ? '#38bdf8' :
-                             '#cbd5e1',
+        state === "learn" ? '#7dd3fc'
+        : state === "teach" ? '#38bdf8'
+        : '#cbd5e1',
       top: '4px',
-      // Move left or right depending on the subject's state
-      left: state === "learn" ? '4px' :
-            state === "teach" ? '116px' :
-                                '60px',
+      left: state === "learn" ? '4px'
+           : state === "teach" ? '116px'
+           : '60px',
       transition: 'left 0.25s ease, background-color 0.25s ease',
       zIndex: 1
     }),
@@ -224,10 +236,9 @@ function UpdatePreference({ userId }) {
       textAlign: 'center',
       marginTop: '1rem'
     },
-
-    /* NEW: styling for the category filter bar */
     filterBar: {
       display: 'flex',
+      flexWrap: 'wrap',
       justifyContent: 'center',
       gap: '10px',
       marginBottom: '1rem'
@@ -248,7 +259,7 @@ function UpdatePreference({ userId }) {
       <h2 style={styles.heading}>Update Preferences</h2>
       <form onSubmit={handleSubmit}>
 
-        {/** 1) Available Days **/}
+        {/* 1) Available Days */}
         <fieldset style={styles.fieldset}>
           <legend style={styles.legend}>Available Days</legend>
           <div style={styles.dayPillContainer}>
@@ -264,7 +275,7 @@ function UpdatePreference({ userId }) {
           </div>
         </fieldset>
 
-        {/** 2) Category Filter Buttons **/}
+        {/* 2) Category Filter Buttons */}
         <div style={styles.filterBar}>
           {CATEGORIES.map(cat => (
             <button
@@ -278,7 +289,7 @@ function UpdatePreference({ userId }) {
           ))}
         </div>
 
-        {/** 3) Subject Preferences (filtered) **/}
+        {/* 3) Subject Preferences (filtered) */}
         <fieldset style={styles.fieldset}>
           <legend style={styles.legend}>Subject Preferences</legend>
           {filteredSubjects.map(({ name }) => (
