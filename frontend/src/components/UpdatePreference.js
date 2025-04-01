@@ -132,7 +132,8 @@ function UpdatePreference({ userId }) {
 
   const styles = {
     container: {
-      maxWidth: '30vw',
+      maxWidth: '60vw',
+      minWidth: '400px',
       margin: '3rem auto',
       padding: '2rem',
       borderRadius: '12px',
@@ -160,7 +161,6 @@ function UpdatePreference({ userId }) {
       marginBottom: '1rem',
       textAlign: 'center'
     },
-
     dayPill: (selected) => ({
       padding: '10px 16px',
       borderRadius: '20px',
@@ -176,6 +176,7 @@ function UpdatePreference({ userId }) {
       display: 'flex',
       flexWrap: 'wrap',
       justifyContent: 'center',
+      alignItems: 'center',  // added to center vertically
       gap: '12px',
       marginTop: '1rem'
     },
@@ -251,7 +252,17 @@ function UpdatePreference({ userId }) {
       padding: '6px 12px',
       cursor: 'pointer',
       fontWeight: 'bold'
-    })
+    }),
+    subjectGrid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+      gap: '1rem'
+    },
+    filterNote: {
+      textAlign: 'center',
+      fontSize: '0.85rem',
+      marginBottom: '1rem'
+    }
   };
 
   return (
@@ -275,49 +286,53 @@ function UpdatePreference({ userId }) {
           </div>
         </fieldset>
 
-        {/* 2) Category Filter Buttons */}
-        <div style={styles.filterBar}>
-          {CATEGORIES.map(cat => (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => setActiveCategory(cat)}
-              style={styles.filterButton(activeCategory === cat)}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {/* 3) Subject Preferences (filtered) */}
+        {/* 2) Subject Preferences (filtered) with filters and note */}
         <fieldset style={styles.fieldset}>
           <legend style={styles.legend}>Subject Preferences</legend>
-          {filteredSubjects.map(({ name }) => (
-            <div key={name} style={styles.subjectRow}>
-              <span style={styles.subjectName}>{name}</span>
-              <div style={styles.switchWrapper}>
-                <div style={styles.switchCircle(subjectStates[name])} />
-                <div
-                  style={styles.switchZone}
-                  onClick={() => setSubjectState(name, 'learn')}
-                >
-                  Learn
-                </div>
-                <div
-                  style={styles.switchZone}
-                  onClick={() => setSubjectState(name, 'none')}
-                >
-                  None
-                </div>
-                <div
-                  style={styles.switchZone}
-                  onClick={() => setSubjectState(name, 'teach')}
-                >
-                  Teach
+          {/* Filters moved into the subject preferences container */}
+          <div style={styles.filterBar}>
+            {CATEGORIES.map(cat => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setActiveCategory(cat)}
+                style={styles.filterButton(activeCategory === cat)}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+          {/* Add note */}
+          <p style={styles.filterNote}>Please pick no more than 14 subjects for optimum results.</p>
+          {/* Subject rows wrapped in a responsive grid */}
+          <div style={styles.subjectGrid}>
+            {filteredSubjects.map(({ name }) => (
+              <div key={name} style={styles.subjectRow}>
+                <span style={styles.subjectName}>{name}</span>
+                <div style={styles.switchWrapper}>
+                  <div style={styles.switchCircle(subjectStates[name])} />
+                  <div
+                    style={styles.switchZone}
+                    onClick={() => setSubjectState(name, 'learn')}
+                  >
+                    Learn
+                  </div>
+                  <div
+                    style={styles.switchZone}
+                    onClick={() => setSubjectState(name, 'none')}
+                  >
+                    None
+                  </div>
+                  <div
+                    style={styles.switchZone}
+                    onClick={() => setSubjectState(name, 'teach')}
+                  >
+                    Teach
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </fieldset>
 
         <div style={styles.buttonContainer}>
