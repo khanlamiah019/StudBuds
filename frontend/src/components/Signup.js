@@ -26,8 +26,9 @@ function Signup() {
   const auth = getAuth();
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+    const value = e.target.name === 'email' ? e.target.value.toLowerCase() : e.target.value;
+    setFormData({ ...formData, [e.target.name]: value });
+  };  
 
   const validateForm = () => {
     const year = parseInt(formData.year, 10);
@@ -89,7 +90,7 @@ function Signup() {
 
   const styles = {
     container: {
-      maxWidth: '450px',
+      maxWidth: '30px',
       margin: '3rem auto',
       padding: '2rem',
       borderRadius: '12px',

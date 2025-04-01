@@ -12,16 +12,15 @@ function Login({ setUserId }) {
   const isMounted = useRef(true);
 
   useEffect(() => {
-    // Component mounted
     isMounted.current = true;
     return () => {
-      // Component unmounted
       isMounted.current = false;
     };
   }, []);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const value = e.target.name === 'email' ? e.target.value.toLowerCase() : e.target.value;
+    setFormData({ ...formData, [e.target.name]: value });
   };
 
   const handleSubmit = async (e) => {
@@ -59,9 +58,7 @@ function Login({ setUserId }) {
       if (isMounted.current) setIsSubmitting(false);
     }
   };
-
-  // styles remain the same
-
+  
   const styles = {
     container: {
       maxWidth: '400px',

@@ -66,9 +66,13 @@ function UpdatePreference({ userId }) {
 
   const styles = {
     container: {
-      width: '90%',
-      margin: '0 auto',
-      padding: '2rem 0',
+      maxWidth: '30vw',
+      margin: '3rem auto',
+      padding: '2rem',
+      borderRadius: '12px',
+      backgroundColor: '#ffffff',
+      boxShadow: '0 6px 12px rgba(0,0,0,0.1)',
+      textAlign: 'left'
     },
     heading: {
       textAlign: 'center',
