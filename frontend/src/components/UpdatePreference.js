@@ -132,8 +132,9 @@ function UpdatePreference({ userId }) {
 
   const styles = {
     container: {
-      maxWidth: '60vw',
-      minWidth: '400px',
+      width: '60vw',
+      maxWidth: '900px',
+      minWidth: '300px',
       margin: '3rem auto',
       padding: '2rem',
       borderRadius: '12px',
@@ -147,13 +148,13 @@ function UpdatePreference({ userId }) {
     },
     fieldset: {
       marginBottom: '2rem',
-      padding: '1.5rem',
+      padding: '1rem',  // reduced from 1.5rem
       border: '1px solid #ccc',
       borderRadius: '6px',
       display: 'flex',
       flexDirection: 'column',
-      justifyContent: 'center', 
-      minHeight: '200px',
+      justifyContent: 'flex-start',
+      minHeight: 'unset',  // changed from 'auto'
       textAlign: 'left'
     },
     legend: {
@@ -176,16 +177,17 @@ function UpdatePreference({ userId }) {
       display: 'flex',
       flexWrap: 'wrap',
       justifyContent: 'center',
-      alignItems: 'center',  // added to center vertically
+      alignItems: 'center',
       gap: '12px',
-      marginTop: '1rem'
+      margin: '0 0 1.75rem 0'  // Add bottom margin of 1rem
     },
     subjectRow: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: '8px 0',
-      borderBottom: '1px solid #eee'
+      padding: '8px 16px',  // Added horizontal padding
+      borderBottom: '1px solid #eee',
+      position: 'relative'  // Add this
     },
     subjectName: {
       flex: 1,
@@ -256,7 +258,19 @@ function UpdatePreference({ userId }) {
     subjectGrid: {
       display: 'grid',
       gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-      gap: '1rem'
+      gap: '1rem',
+      position: 'relative',  // Add this
+      // Add divider line
+      '&::after': {
+        content: '""',
+        position: 'absolute',
+        left: '50%',
+        top: 0,
+        bottom: 0,
+        width: '1px',
+        backgroundColor: '#eee',
+        transform: 'translateX(-50%)'
+      }
     },
     filterNote: {
       textAlign: 'center',
