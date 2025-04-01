@@ -14,25 +14,42 @@ function App() {
   const [userId, setUserId] = useState(null);
   const navigate = useNavigate();
 
+  // State for toggling mobile menu
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const handleLogout = () => {
+    setUserId(null);
+    navigate('/');
+    setMenuOpen(false); // Close menu on logout
+  };
+
   return (
     <div>
       {/* Header */}
       <div className="header">
         <img src="/logo.png" alt="StudBud Logo" />
-        <h1>StudBuds</h1>
+        <h1>StudBud</h1>
       </div>
 
       {userId && (
         <nav>
-          <ul>
-            <li><Link to="/matchlist">Match List</Link></li>
-            <li><Link to="/update">Update Preferences</Link></li>
-            <li><Link to="/profile">Profile</Link></li>
+          {/* Hamburger icon (shows on mobile) */}
+          <div 
+            className={`hamburger ${menuOpen ? 'active' : ''}`} 
+            onClick={() => setMenuOpen((prev) => !prev)}
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+
+          {/* Nav links */}
+          <ul className={menuOpen ? 'menu-open' : ''}>
+            <li><Link to="/matchlist" onClick={() => setMenuOpen(false)}>Match List</Link></li>
+            <li><Link to="/update" onClick={() => setMenuOpen(false)}>Update Preferences</Link></li>
+            <li><Link to="/profile" onClick={() => setMenuOpen(false)}>Profile</Link></li>
             <li>
-              <button onClick={() => {
-                setUserId(null);
-                navigate('/');  // Redirect to Landing page on logout
-              }}>
+              <button onClick={handleLogout}>
                 Logout
               </button>
             </li>
