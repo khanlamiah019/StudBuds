@@ -45,8 +45,8 @@ nav {
   /* Fixed height so items can be vertically centered */
   height: 60px;
   display: flex;
-  justify-content: center; /* horizontally center items */
-  align-items: center;     /* vertically center items */
+  justify-content: center;
+  align-items: center;
 }
 
 nav ul {
@@ -57,15 +57,28 @@ nav ul {
   padding: 0;
 }
 
+/* 
+   Make both nav links and nav buttons share the same look.
+   This overrides the global "button" style for anything inside `nav`.
+*/
 nav a,
 nav button {
+  background: none;
+  border: none;
   text-decoration: none;
-  color: var(--card-background); /* white text on teal */
+  color: var(--card-background); /* White text on teal */
   padding: 0.4rem 0.8rem;
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  font: inherit; /* Inherit font styling */
+  display: flex;
+  align-items: center;
+  height: 36px; /* consistent height */
+  line-height: 1; /* prevent extra vertical space */
+  box-sizing: border-box;
 }
+
 
 nav a:hover,
 nav button:hover {
@@ -80,7 +93,10 @@ h2, h3 {
   color: var(--secondary-color);
 }
 
-/* Buttons (general) */
+/* 
+  General buttons (used outside nav). 
+  If you want all buttons everywhere to look like the nav links, remove or adjust these styles.
+*/
 button {
   background-color: var(--primary-color);
   color: var(--card-background);
@@ -110,7 +126,7 @@ button:hover {
   }
 
   nav {
-    height: auto; 
+    height: auto; /* let nav resize on smaller screens */
   }
 
   nav ul {
