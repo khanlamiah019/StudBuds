@@ -1,6 +1,6 @@
 // src/App.js
 import React, { useState } from 'react';
-import { Routes, Route, Link, Navigate } from 'react-router-dom';
+import { Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import './App.css';
 
 import Landing from './components/Landing';
@@ -12,6 +12,7 @@ import Profile from './components/Profile';
 
 function App() {
   const [userId, setUserId] = useState(null);
+  const navigate = useNavigate();
 
   return (
     <div>
@@ -27,7 +28,14 @@ function App() {
             <li><Link to="/matchlist">Match List</Link></li>
             <li><Link to="/update">Update Preferences</Link></li>
             <li><Link to="/profile">Profile</Link></li>
-            <li><button onClick={() => setUserId(null)}>Logout</button></li>
+            <li>
+              <button onClick={() => {
+                setUserId(null);
+                navigate('/');  // Redirect to Landing page on logout
+              }}>
+                Logout
+              </button>
+            </li>
           </ul>
         </nav>
       )}

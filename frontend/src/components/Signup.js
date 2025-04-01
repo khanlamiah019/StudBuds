@@ -1,4 +1,3 @@
-// src/Signup.js
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
@@ -27,8 +26,9 @@ function Signup() {
   const auth = getAuth();
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+    const value = e.target.name === 'email' ? e.target.value.toLowerCase() : e.target.value;
+    setFormData({ ...formData, [e.target.name]: value });
+  };  
 
   const validateForm = () => {
     const year = parseInt(formData.year, 10);
@@ -46,32 +46,35 @@ function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+  
+    // Check that the email address is a cooper.edu email
+    if (!formData.email.toLowerCase().endsWith('@cooper.edu')) {
+      setMessage("Please use a cooper.edu email address.");
+      return;
+    }
+  
     setMessage('');
     setIsSubmitting(true);
     let token;
-    
-    // Ensure no user is currently signed in.
+  
     try {
       await signOut(auth);
     } catch (err) {
       console.log("Sign-out error (ignorable):", err);
     }
-    
+  
     try {
-      // Create the user in Firebase.
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         formData.email,
         formData.password
       );
       token = await userCredential.user.getIdToken();
-
-      // Call the backend signup endpoint.
+  
       await axios.post('/api/auth/signup', formData, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-
-      // After successful signup, redirect to the login page.
+  
       navigate('/login');
     } catch (error) {
       if (error.code === 'auth/email-already-in-use') {
@@ -83,43 +86,119 @@ function Signup() {
     } finally {
       setIsSubmitting(false);
     }
+  };  
+
+  const styles = {
+    container: {
+      maxWidth: '30px',
+      margin: '3rem auto',
+      padding: '2rem',
+      borderRadius: '12px',
+      boxShadow: '0 6px 12px rgba(0,0,0,0.1)',
+      backgroundColor: '#ffffff',
+    },
+    heading: {
+      textAlign: 'center',
+      marginBottom: '1.5rem',
+      color: '#2c6e6a'
+    },
+    input: {
+      width: '100%',
+      padding: '12px',
+      margin: '0.5rem 0',
+      borderRadius: '20px',
+      border: '1px solid #ccc',
+      boxSizing: 'border-box',
+      outline: 'none',
+      fontSize: '1rem'
+    },
+    select: {
+      width: '100%',
+      padding: '12px',
+      margin: '0.5rem 0',
+      borderRadius: '20px',
+      border: '1px solid #ccc',
+      boxSizing: 'border-box',
+      outline: 'none',
+      fontSize: '1rem'
+    },
+    button: {
+      width: '100%',
+      padding: '12px',
+      marginTop: '1rem',
+      borderRadius: '20px',
+      border: 'none',
+      backgroundColor: '#5ccdc1',
+      color: '#fff',
+      fontSize: '1rem',
+      cursor: 'pointer',
+      transition: 'background-color 0.3s ease'
+    },
+    buttonDisabled: {
+      backgroundColor: '#9de0da',
+      cursor: 'not-allowed'
+    },
+    message: {
+      color: 'blue',
+      textAlign: 'center',
+      marginTop: '1rem'
+    },
+    link: {
+      color: '#2c6e6a',
+      textDecoration: 'none',
+      fontWeight: 'bold'
+    }
   };
 
   return (
-    <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-      <h2>Sign Up</h2>
+    <div style={styles.container}>
+      <h2 style={styles.heading}>Sign Up for StudBuds</h2>
       <form onSubmit={handleSubmit}>
         <input 
+          style={styles.input}
           type="text" 
           name="name" 
-          placeholder="Name" 
+          placeholder="Full Name" 
           onChange={handleChange} 
           value={formData.name} 
           required
-        /><br/><br/>
+        />
+
         <input 
+          style={styles.input}
           type="email" 
           name="email" 
           placeholder="Email (@cooper.edu)" 
           onChange={handleChange} 
           value={formData.email} 
           required
-        /><br/><br/>
+        />
+
         <input 
+          style={styles.input}
           type="password" 
           name="password" 
           placeholder="Password (min 9 characters)" 
           onChange={handleChange} 
           value={formData.password} 
           required
-        /><br/><br/>
-        <select name="major" value={formData.major} onChange={handleChange} required>
-          <option value="">Select Major</option>
+        />
+
+        <select 
+          name="major" 
+          value={formData.major} 
+          onChange={handleChange} 
+          style={styles.select}
+          required
+        >
+          <option value="">Select Your Major</option>
           {allowedMajors.map((major) => (
             <option key={major} value={major}>{major}</option>
           ))}
-        </select><br/><br/>
+        </select>
+
         <input 
+          style={styles.input}
           type="number" 
           name="year" 
           placeholder="Year (2020-2050)" 
@@ -128,16 +207,29 @@ function Signup() {
           min="2020" 
           max="2050" 
           required
-        /><br/><br/>
-        <button type="submit" disabled={isSubmitting}>Sign Up</button>
+        />
+
+        <button 
+          type="submit" 
+          style={{ 
+            ...styles.button, 
+            ...(isSubmitting ? styles.buttonDisabled : {}) 
+          }}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Signing Up...' : 'Sign Up'}
+        </button>
       </form>
+
       {message && (
-        <div style={{ marginTop: '1rem', textAlign: 'center' }}>
-          <p style={{ color: 'blue' }}>{message}</p>
+        <div style={styles.message}>
+          {message}
         </div>
       )}
-      <p style={{ marginTop: '1rem' }}>
-        Already have an account? <Link to="/login">Sign in here</Link>
+
+      <p style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+        Already have an account?{' '}
+        <Link to="/login" style={styles.link}>Sign in here</Link>
       </p>
     </div>
   );
