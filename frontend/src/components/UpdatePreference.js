@@ -101,7 +101,7 @@ function UpdatePreference({ userId }) {
       backgroundColor: selected ? '#5ccdc1' : '#f5f5f5',
       border: '1px solid #ccc',
       color: selected ? 'white' : '#333',
-      fontWeight: selected ? 'bold' : 'normal',
+      fontWeight: selected ? 'normal' : 'normal',
       cursor: 'pointer',
       transition: 'all 0.2s ease',
       userSelect: 'none'
