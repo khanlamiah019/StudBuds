@@ -87,7 +87,6 @@ const getEngineerEmoji = (user) => {
 
   // Styling for overall page and container.
   const pageStyle = {
-    background: 'linear-gradient(135deg, #e0f7fa, #ffffff)',
     minHeight: '100vh',
     paddingTop: '2rem',
     textAlign: 'center'
@@ -96,7 +95,7 @@ const getEngineerEmoji = (user) => {
   const headerStyle = {
     textAlign: 'center',
     marginBottom: '1rem',
-    color: '#2c6e6a'
+    color: '#ffffff'
   };
 
   const cardContainerStyle = {

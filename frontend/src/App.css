@@ -4,7 +4,7 @@
 :root {
   --primary-color: #5ccdc1;       /* Teal/seafoam */
   --secondary-color: #2c6e6a;     /* Dark accent */
-  --background-color: #e0f7fa;    /* Light background */
+  --background-color: #236b70;    /* Light background */
   --card-background: #ffffff;     /* White for cards/containers */
   --shadow-color: rgba(0, 0, 0, 0.1);
 }

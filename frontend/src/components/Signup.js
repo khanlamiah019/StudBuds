@@ -90,7 +90,7 @@ function Signup() {
 
   const styles = {
     container: {
-      maxWidth: '30px',
+      maxWidth: '400px',
       margin: '3rem auto',
       padding: '2rem',
       borderRadius: '12px',
