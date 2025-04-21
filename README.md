@@ -96,7 +96,7 @@ Backend API will run on: `http://localhost:8080`
 ---
 
 ### 🌐 Frontend Setup  
-<img width="805" alt="Screenshot 2025-04-21 at 9 27 18 AM" src="https://github.com/user-attachments/assets/3e5e4e1f-fb32-430b-a622-797ace15fca6" />
+![IMG_1494](https://github.com/user-attachments/assets/e46e6f46-8203-4b24-a53e-b71ea7cf222b)
 **Step 1: Firebase Config**  
 - Configure your Firebase app credentials in:  
 ```
