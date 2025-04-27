@@ -2,40 +2,45 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { getAuth } from 'firebase/auth';
+import { getAuth, signOut } from 'firebase/auth';
 
-function DeleteAccount({ userEmail, setUserId }) {
+function DeleteAccount({ setUserId }) {
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
   const auth = getAuth();
 
   const handleDelete = async () => {
     try {
-      // Get the Firebase token.
+      // 1) Get the Firebase token
       const token = await auth.currentUser.getIdToken();
-      const payload = { email: userEmail, firebaseToken: token };
 
-      // Call the backend delete endpoint.
-      await axios.delete('http://localhost:8080/api/auth/delete', {
-        data: payload,
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+     // 2) Hit our new POST /delete endpoint
+      const response = await axios.post(
+        '/api/auth/delete',
+        { firebaseToken: token },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-      setMessage("Account deleted successfully.");
++     // 3) locally sign out of Firebase
+      await signOut(auth);
+
+      setMessage(response.data.message);
       setUserId(null);
-      // Redirect to sign up page after deletion.
       navigate('/signup');
     } catch (error) {
-      // If the error message is an object, stringify it.
-      const errMsg = error.response?.data || error.message || 'Account deletion failed.';
-      setMessage(typeof errMsg === 'object' ? JSON.stringify(errMsg) : errMsg);
+      const errMsg = error.response?.data?.message
+                   || error.message
+                   || 'Account deletion failed.';
+      setMessage(errMsg);
     }
   };
 
   return (
     <div style={{ textAlign: 'center', marginTop: '2rem' }}>
       <h2>Delete Account</h2>
-      <button onClick={handleDelete}>Delete Account</button>
+      <button onClick={handleDelete}>
+        Delete Account
+      </button>
       {message && <p style={{ color: 'blue' }}>{message}</p>}
     </div>
   );
