@@ -17,25 +17,27 @@ body {
   color: var(--secondary-color);
 }
 
-/* Header styles: white */
+/* Header styles */
 .header {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
   background-color: var(--card-background); /* White */
-  gap: 1rem;
 }
 
 .header img {
   height: 50px;
   margin-right: 1rem;
+  flex-shrink: 0;
 }
 
 .header h1 {
   margin: 0;
   font-size: 1.8rem;
   color: var(--secondary-color); /* Dark accent for contrast on white */
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 /* NAV STYLES */
@@ -69,10 +71,10 @@ nav button {
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  font: inherit; /* Inherit font styling */
+  font: inherit;
   display: flex;
   align-items: center;
-  height: 36px; /* consistent height */
+  height: 36px;
   line-height: 1;
   box-sizing: border-box;
 }
@@ -115,8 +117,6 @@ nav button:hover {
   transform: translateY(-9px) rotate(-45deg);
 }
 
-/* Main container for pages (if any) */
-
 /* Headings */
 h2, h3 {
   color: var(--secondary-color);
@@ -142,59 +142,4 @@ button:hover {
   color: blue;
   text-align: center;
   margin-top: 1rem;
-}
-
-/* MEDIA QUERIES - Mobile View */
-@media (max-width: 768px) {
-  .container {
-    max-width: 90vw;
-    padding: 1rem;
-  }
-
-  /* Show hamburger icon on mobile */
-  .hamburger {
-    display: flex;
-  }
-
-  /* We switch nav ul to a collapsed menu by default */
-  nav ul {
-    position: absolute;          /* Take out of document flow */
-    top: 60px;                   /* Just below the nav bar */
-    left: 0;
-    width: 100%;
-    background-color: var(--primary-color);
-    flex-direction: column;      /* Stack items vertically */
-    align-items: flex-start;     /* Left-align items inside */
-    padding: 1rem;
-    gap: 0.5rem;
-    max-height: 0;               /* Hidden by default */
-    overflow: hidden;
-    transition: max-height 0.3s ease;
-    z-index: 999;               /* Ensure menu sits on top */
-  }
-
-  /* When .menu-open is applied, show entire menu */
-  nav ul.menu-open {
-    max-height: 300px; /* or large enough to show all items */
-  }
-
-  .header {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .header img {
-    margin-right: 0;
-    height: 40px;
-  }
-
-  .header h1 {
-    font-size: 1.5rem;
-  }
-
-  form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
 }
