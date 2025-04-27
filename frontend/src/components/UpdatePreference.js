@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-/* Days array unchanged */
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+/** CONSTANTS */
+const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 
-/* Subject array with categories */
 const SUBJECTS_WITH_CATEGORIES = [
   // Math
   { name: "Calculus", category: "Math" },
@@ -53,230 +52,131 @@ const SUBJECTS_WITH_CATEGORIES = [
 ];
 
 const CATEGORIES = [
-  "All",
-  "Civil",
-  "Chemical",
-  "Electrical",
-  "Mechanical",
-  "Computer Science",
-  "Math",
-  "Physics"
+  "All","Civil","Chemical","Electrical","Mechanical",
+  "Computer Science","Math","Physics"
 ];
 
-function UpdatePreference({ userId }) {
+/** STYLES */
+const styles = {
+  container: { width:'60vw',maxWidth:'900px',minWidth:'300px',margin:'3rem auto',padding:'2rem',borderRadius:'12px',backgroundColor:'#fff',boxShadow:'0 6px 12px rgba(0,0,0,0.1)',textAlign:'left' },
+  heading:   { textAlign:'center',marginBottom:'2rem' },
+  fieldset:  { marginBottom:'2rem',padding:'1rem',border:'1px solid #ccc',borderRadius:'6px',display:'flex',flexDirection:'column',textAlign:'left' },
+  legend:    { fontWeight:'bold',marginBottom:'1rem',textAlign:'center' },
+  dayPill: selected => ({
+    padding:'10px 16px',borderRadius:'20px',backgroundColor:selected?'#5ccdc1':'#f5f5f5',
+    border:'1px solid #ccc',color:selected?'#fff':'#333',cursor:'pointer',userSelect:'none'
+  }),
+  dayPillContainer:{ display:'flex',flexWrap:'wrap',justifyContent:'center',gap:'12px',margin:'0 0 1.75rem 0' },
+  filterBar:{ display:'flex',flexWrap:'wrap',justifyContent:'center',gap:'10px',marginBottom:'1rem' },
+  filterButton:isActive=>({
+    border:'1px solid #ccc',borderRadius:'8px',padding:'6px 12px',
+    backgroundColor:isActive?'#5ccdc1':'#f5f5f5',color:isActive?'#fff':'#333',cursor:'pointer',fontWeight:'bold'
+  }),
+  filterNote:{ textAlign:'center',fontSize:'0.85rem',marginBottom:'1rem' },
+  subjectGrid:{ display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))',gap:'1rem',position:'relative' },
+  subjectRow:{ display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 16px',borderBottom:'1px solid #eee',position:'relative' },
+  subjectName:{ flex:1,fontSize:'0.95rem' },
+  switchWrapper:{ width:'180px',height:'36px',borderRadius:'18px',backgroundColor:'#e5e7eb',position:'relative',display:'flex',overflow:'hidden',boxShadow:'inset 0 0 5px rgba(0,0,0,0.1)' },
+  switchZone:{ flex:1,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.85rem',fontWeight:500,cursor:'pointer',zIndex:2 },
+  switchCircle:state=>({
+    position:'absolute',height:'28px',width:'60px',borderRadius:'14px',
+    backgroundColor: state==='learn'?'#7dd3fc': state==='teach'?'#38bdf8':'#cbd5e1',
+    top:'4px',
+    left: state==='learn'?'4px': state==='teach'?'116px':'60px',
+    transition:'left 0.25s ease, background-color 0.25s ease',zIndex:1
+  }),
+  buttonContainer:{ textAlign:'center',marginTop:'2rem' },
+  error:{ color:'blue',textAlign:'center',marginTop:'1rem' },
+};
+
+export default function UpdatePreference({ userId }) {
   const navigate = useNavigate();
 
-  // Days state (unchanged)
-  const [selectedDays, setSelectedDays] = useState([]);
-
-  // Keep subject states in an object: subject name -> "learn"|"teach"|"none"
+  const [selectedDays,  setSelectedDays]  = useState([]);
   const [subjectStates, setSubjectStates] = useState(() =>
-    SUBJECTS_WITH_CATEGORIES.reduce((acc, sub) => ({ ...acc, [sub.name]: "none" }), {})
+    SUBJECTS_WITH_CATEGORIES.reduce((acc, sub) => ({ ...acc, [sub.name]: 'none' }), {})
   );
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [message,        setMessage]        = useState('');
 
-  // New state for category filter
-  const [activeCategory, setActiveCategory] = useState("All");
+  // Load existing prefs
+  useEffect(() => {
+    axios.get(`/api/user/${userId}/preference`)
+      .then(({ data }) => {
+        setSelectedDays(
+          data.availableDays
+            ? data.availableDays.split(',').map(d => d.trim())
+            : []
+        );
+        const learn = data.subjectsToLearn?.split(',').map(s => s.trim()) || [];
+        const teach = data.subjectsToTeach?.split(',').map(s => s.trim()) || [];
+        setSubjectStates(prev => {
+          const updated = { ...prev };
+          Object.keys(updated).forEach(sub => {
+            updated[sub] = learn.includes(sub) ? 'learn'
+                          : teach.includes(sub) ? 'teach'
+                          : 'none';
+          });
+          return updated;
+        });
+      })
+      .catch(() => setMessage('Failed to load existing preferences.'));
+  }, [userId]);
 
-  // After submitting, show success/error message
-  const [message, setMessage] = useState('');
+  const handleClear = () => {
+    axios.delete(`/api/user/${userId}/preference`)
+      .then(() => {
+        setSelectedDays([]);
+        setSubjectStates(
+          SUBJECTS_WITH_CATEGORIES.reduce((acc, sub) => ({ ...acc, [sub.name]: 'none' }), {})
+        );
+        setMessage('Preferences cleared.');
+      })
+      .catch(() => setMessage('Failed to clear preferences.'));
+  };
 
-  /* Handle day pills */
-  const handleDayClick = (day) => {
+  const handleDayClick = day => {
     setSelectedDays(prev =>
       prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
     );
   };
 
-  /* Helper to change a subject's state */
-  const setSubjectState = (subjectName, newState) => {
-    setSubjectStates(prev => ({ ...prev, [subjectName]: newState }));
+  const setSubjectState = (subject, state) => {
+    setSubjectStates(prev => ({ ...prev, [subject]: state }));
   };
 
-  /* Filter subjects by activeCategory */
-  const filteredSubjects = activeCategory === "All"
+  const filteredSubjects = activeCategory === 'All'
     ? SUBJECTS_WITH_CATEGORIES
-    : SUBJECTS_WITH_CATEGORIES.filter(sub => sub.category === activeCategory);
+    : SUBJECTS_WITH_CATEGORIES.filter(s => s.category === activeCategory);
 
-  /* Submit preference to backend */
-  const handleSubmit = (e) => {
+  const handleSubmit = e => {
     e.preventDefault();
-
-    const subjectsToLearn = [];
-    const subjectsToTeach = [];
-
-    // Build arrays of chosen subjects
-    Object.entries(subjectStates).forEach(([subject, state]) => {
-      if (state === "learn") subjectsToLearn.push(subject);
-      if (state === "teach") subjectsToTeach.push(subject);
+    const toLearn = [], toTeach = [];
+    Object.entries(subjectStates).forEach(([sub, st]) => {
+      if (st === 'learn') toLearn.push(sub);
+      if (st === 'teach') toTeach.push(sub);
     });
 
-    const preferenceData = {
-      availableDays: selectedDays.join(', '),
-      subjectsToLearn: subjectsToLearn.join(', '),
-      subjectsToTeach: subjectsToTeach.join(', ')
-    };
-
-    axios.post(`/api/user/${userId}/preference`, preferenceData)
-      .then(() => {
-        setMessage('Preference updated successfully.');
-        navigate('/matchlist');
-      })
-      .catch(error => {
-        if (error.response && typeof error.response.data === 'object') {
-          setMessage("Too many preferences picked. Please select fewer subjects.");
-        } else {
-          setMessage(error.response?.data || 'Update failed.');
-        }
-      });
-  };
-
-  const styles = {
-    container: {
-      width: '60vw',
-      maxWidth: '900px',
-      minWidth: '300px',
-      margin: '3rem auto',
-      padding: '2rem',
-      borderRadius: '12px',
-      backgroundColor: '#ffffff',
-      boxShadow: '0 6px 12px rgba(0,0,0,0.1)',
-      textAlign: 'left'
-    },
-    heading: {
-      textAlign: 'center',
-      marginBottom: '2rem'
-    },
-    fieldset: {
-      marginBottom: '2rem',
-      padding: '1rem',  // reduced from 1.5rem
-      border: '1px solid #ccc',
-      borderRadius: '6px',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'flex-start',
-      minHeight: 'unset',  // changed from 'auto'
-      textAlign: 'left'
-    },
-    legend: {
-      fontWeight: 'bold',
-      marginBottom: '1rem',
-      textAlign: 'center'
-    },
-    dayPill: (selected) => ({
-      padding: '10px 16px',
-      borderRadius: '20px',
-      backgroundColor: selected ? '#5ccdc1' : '#f5f5f5',
-      border: '1px solid #ccc',
-      color: selected ? 'white' : '#333',
-      fontWeight: 'normal',
-      cursor: 'pointer',
-      transition: 'all 0.2s ease',
-      userSelect: 'none'
-    }),
-    dayPillContainer: {
-      display: 'flex',
-      flexWrap: 'wrap',
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: '12px',
-      margin: '0 0 1.75rem 0'  // Add bottom margin of 1rem
-    },
-    subjectRow: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '8px 16px',  // Added horizontal padding
-      borderBottom: '1px solid #eee',
-      position: 'relative'  // Add this
-    },
-    subjectName: {
-      flex: 1,
-      fontSize: '0.95rem'
-    },
-    switchWrapper: {
-      width: '180px',
-      height: '36px',
-      borderRadius: '18px',
-      backgroundColor: '#e5e7eb',
-      position: 'relative',
-      display: 'flex',
-      overflow: 'hidden',
-      boxShadow: 'inset 0 0 5px rgba(0,0,0,0.1)'
-    },
-    switchZone: {
-      flex: 1,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontSize: '0.85rem',
-      fontWeight: 500,
-      color: '#333',
-      cursor: 'pointer',
-      zIndex: 2
-    },
-    switchCircle: (state) => ({
-      position: 'absolute',
-      height: '28px',
-      width: '60px',
-      borderRadius: '14px',
-      backgroundColor:
-        state === "learn" ? '#7dd3fc'
-        : state === "teach" ? '#38bdf8'
-        : '#cbd5e1',
-      top: '4px',
-      left: state === "learn" ? '4px'
-           : state === "teach" ? '116px'
-           : '60px',
-      transition: 'left 0.25s ease, background-color 0.25s ease',
-      zIndex: 1
-    }),
-    buttonContainer: {
-      textAlign: 'center',
-      marginTop: '2rem'
-    },
-    error: {
-      color: 'blue',
-      textAlign: 'center',
-      marginTop: '1rem'
-    },
-    filterBar: {
-      display: 'flex',
-      flexWrap: 'wrap',
-      justifyContent: 'center',
-      gap: '10px',
-      marginBottom: '1rem'
-    },
-    filterButton: (isActive) => ({
-      border: '1px solid #ccc',
-      backgroundColor: isActive ? '#5ccdc1' : '#f5f5f5',
-      color: isActive ? 'white' : '#333',
-      borderRadius: '8px',
-      padding: '6px 12px',
-      cursor: 'pointer',
-      fontWeight: 'bold'
-    }),
-    subjectGrid: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-      gap: '1rem',
-      position: 'relative',  // Add this
-      // Add divider line
-      '&::after': {
-        content: '""',
-        position: 'absolute',
-        left: '50%',
-        top: 0,
-        bottom: 0,
-        width: '1px',
-        backgroundColor: '#eee',
-        transform: 'translateX(-50%)'
+    axios.post(`/api/user/${userId}/preference`, {
+      availableDays:   selectedDays.join(', '),
+      subjectsToLearn: toLearn.join(', '),
+      subjectsToTeach: toTeach.join(', ')
+    })
+    .then(()   => { setMessage('Preference updated successfully.'); navigate('/matchlist'); })
+    .catch(err  => {
+      let msg = 'Update failed.';
+      const data = err.response?.data;
+      if (data) {
+        if (typeof data === 'string')     msg = data;
+        else if (data.message)            msg = data.message;
+        else if (data.error)              msg = data.error;
+        else                              msg = JSON.stringify(data);
       }
-    },
-    filterNote: {
-      textAlign: 'center',
-      fontSize: '0.85rem',
-      marginBottom: '1rem'
-    }
+      if (msg.includes('Too many')) {
+        msg = 'Too many preferences picked. Please select fewer subjects.';
+      }
+      setMessage(msg);
+    });
   };
 
   return (
@@ -284,7 +184,6 @@ function UpdatePreference({ userId }) {
       <h2 style={styles.heading}>Update Preferences</h2>
       <form onSubmit={handleSubmit}>
 
-        {/* 1) Available Days */}
         <fieldset style={styles.fieldset}>
           <legend style={styles.legend}>Available Days</legend>
           <div style={styles.dayPillContainer}>
@@ -300,31 +199,29 @@ function UpdatePreference({ userId }) {
           </div>
         </fieldset>
 
-        {/* 2) Subject Preferences (filtered) with filters and note */}
         <fieldset style={styles.fieldset}>
           <legend style={styles.legend}>Subject Preferences</legend>
-          {/* Filters moved into the subject preferences container */}
           <div style={styles.filterBar}>
             {CATEGORIES.map(cat => (
               <button
                 key={cat}
                 type="button"
                 onClick={() => setActiveCategory(cat)}
-                style={styles.filterButton(activeCategory === cat)}
+                style={styles.filterButton(activeCategory===cat)}
               >
                 {cat}
               </button>
             ))}
           </div>
-          {/* Add note */}
-          <p style={styles.filterNote}>Please pick no more than 14 subjects for optimum results.</p>
-          {/* Subject rows wrapped in a responsive grid */}
+          <p style={styles.filterNote}>
+            Please pick no more than 14 subjects for optimum results.
+          </p>
           <div style={styles.subjectGrid}>
             {filteredSubjects.map(({ name }) => (
               <div key={name} style={styles.subjectRow}>
                 <span style={styles.subjectName}>{name}</span>
                 <div style={styles.switchWrapper}>
-                  <div style={styles.switchCircle(subjectStates[name])} />
+                  <div style={styles.switchCircle(subjectStates[name])}/>
                   <div
                     style={styles.switchZone}
                     onClick={() => setSubjectState(name, 'learn')}
@@ -350,7 +247,14 @@ function UpdatePreference({ userId }) {
         </fieldset>
 
         <div style={styles.buttonContainer}>
-          <button type="submit">Update Preference</button>
+          <button type="submit">Update Preferences</button>
+          <button
+            type="button"
+            onClick={handleClear}
+            style={{ marginLeft: '1rem' }}
+          >
+            Clear Preferences
+          </button>
         </div>
       </form>
 
@@ -358,5 +262,3 @@ function UpdatePreference({ userId }) {
     </div>
   );
 }
-
-export default UpdatePreference;

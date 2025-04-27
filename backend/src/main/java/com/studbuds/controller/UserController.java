@@ -8,8 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 import java.util.Optional;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user")
@@ -23,9 +23,9 @@ public class UserController {
 
     @GetMapping("/{userId}")
     public ResponseEntity<?> getUserDetails(@PathVariable Long userId) {
-        Optional<User> userOpt = userRepository.findById(userId);
-        return userOpt.map(ResponseEntity::ok)
-                      .orElseGet(() -> ResponseEntity.notFound().build());
+        return userRepository.findById(userId)
+            .map(ResponseEntity::ok)
+            .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{userId}")
@@ -35,7 +35,6 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
         User user = userOpt.get();
-        // Update basic user details (name, email, major, and year)
         user.setName(updatedUser.getName());
         user.setEmail(updatedUser.getEmail());
         user.setMajor(updatedUser.getMajor());
@@ -44,15 +43,38 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
+    /** Fetch existing—or blank—preferences for this user */
+    @GetMapping("/{userId}/preference")
+    public ResponseEntity<?> getPreference(@PathVariable Long userId) {
+        return userRepository.findById(userId)
+            .map(user -> {
+                Optional<Preference> prefOpt = preferenceRepository.findByUser(user);
+                if (prefOpt.isPresent()) {
+                    return ResponseEntity.ok(prefOpt.get());
+                } else {
+                    Preference empty = new Preference();
+                    empty.setUser(user);
+                    empty.setAvailableDays("");
+                    empty.setSubjectsToLearn("");
+                    empty.setSubjectsToTeach("");
+                    return ResponseEntity.ok(empty);
+                }
+            })
+            .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    /** Create or update preferences */
     @PostMapping("/{userId}/preference")
-    public ResponseEntity<?> updatePreference(@PathVariable Long userId, @RequestBody Map<String, Object> prefData) {
+    public ResponseEntity<?> updatePreference(
+            @PathVariable Long userId,
+            @RequestBody Map<String, Object> prefData
+    ) {
         Optional<User> userOpt = userRepository.findById(userId);
         if (!userOpt.isPresent()) {
             return ResponseEntity.notFound().build();
         }
         User user = userOpt.get();
-        
-        // Update major and year directly on the User
+
         if (prefData.get("major") != null) {
             user.setMajor((String) prefData.get("major"));
         }
@@ -60,17 +82,14 @@ public class UserController {
             user.setYear((String) prefData.get("year"));
         }
         userRepository.save(user);
-        
-        // Update or create the Preference record for the other fields.
-        Optional<Preference> existingPreferenceOpt = preferenceRepository.findByUser(user);
-        Preference preference;
-        if (existingPreferenceOpt.isPresent()) {
-            preference = existingPreferenceOpt.get();
-        } else {
-            preference = new Preference();
-            preference.setUser(user);
-        }
-        
+
+        Preference preference = preferenceRepository.findByUser(user)
+            .orElseGet(() -> {
+                Preference p = new Preference();
+                p.setUser(user);
+                return p;
+            });
+
         if (prefData.get("availableDays") != null) {
             preference.setAvailableDays((String) prefData.get("availableDays"));
         }
@@ -80,8 +99,20 @@ public class UserController {
         if (prefData.get("subjectsToTeach") != null) {
             preference.setSubjectsToTeach((String) prefData.get("subjectsToTeach"));
         }
-        
-        Preference savedPreference = preferenceRepository.save(preference);
-        return ResponseEntity.ok(savedPreference);
+
+        Preference saved = preferenceRepository.save(preference);
+        return ResponseEntity.ok(saved);
+    }
+
+    /** Delete (clear) this user’s preferences */
+    @DeleteMapping("/{userId}/preference")
+    public ResponseEntity<?> clearPreference(@PathVariable Long userId) {
+        return userRepository.findById(userId)
+            .map(user -> {
+                preferenceRepository.findByUser(user)
+                    .ifPresent(preferenceRepository::delete);
+                return ResponseEntity.noContent().build();
+            })
+            .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }
