@@ -1,6 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 #secret file
 /backend/src/main/resources/firebase-authentication-config.json
+/backend/target/
 
 # dependencies
 /frontend/node_modules/
