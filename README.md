@@ -170,6 +170,12 @@ docker-compose up --build
 - Run unit tests (Jest, React Testing Library) and integration tests (Spring Test) frequently.
 
 ---
+## ⚖️ Ethical Principles 
+(1) 1.02. Moderate the interests of the software engineer, the employer, the client and the users with the public good.
+(2) 1.08. Be encouraged to volunteer professional skills to good causes and contribute to public education concerning the discipline.
+(3) 3.10. Ensure adequate testing, debugging, and review of software and related documents on which they work.
+(4) 3.12. Work to develop software and related documents that respect the privacy of those who will be affected by that software.
+(5) 6.08. Take responsibility for detecting, correcting, and reporting errors in software and associated documents on which they work.
 
 ## 📖 License  
 
