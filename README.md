@@ -171,12 +171,18 @@ docker-compose up --build
 
 ---
 ## ⚖️ Ethical Principles 
-(1) 1.02. Moderate the interests of the software engineer, the employer, the client and the users with the public good.
-(2) 1.08. Be encouraged to volunteer professional skills to good causes and contribute to public education concerning the discipline.
-(3) 3.10. Ensure adequate testing, debugging, and review of software and related documents on which they work.
-(4) 3.12. Work to develop software and related documents that respect the privacy of those who will be affected by that software.
-(5) 6.08. Take responsibility for detecting, correcting, and reporting errors in software and associated documents on which they work.
+- 1.02. Moderate the interests of the software engineer, the employer, the client and the users with the public good.
+- 1.08. Be encouraged to volunteer professional skills to good causes and contribute to public education concerning the discipline.
+- 3.10. Ensure adequate testing, debugging, and review of software and related documents on which they work.
+- 3.12. Work to develop software and related documents that respect the privacy of those who will be affected by that software.
+- 6.08. Take responsibility for detecting, correcting, and reporting errors in software and associated documents on which they work.
+- 8.02. Improve their ability to create safe, reliable, and useful quality software at reasonable cost and within a reasonable time.
+- 2.02. Not knowingly use software that is obtained or retained either illegally or unethically.
+- 3.01. Strive for high quality, acceptable cost and a reasonable schedule, ensuring significant tradeoffs are clear to and accepted by the employer and the client, and are available for consideration by the user and the public.
+- 3.05. Ensure an appropriate method is used for any project on which they work or propose to work.
+- 3.11. Ensure adequate documentation, including significant problems discovered and solutions adopted, for any project on which they work.
 
+---
 ## 📖 License  
 
 StudBuds is licensed under the [MIT License](LICENSE).
