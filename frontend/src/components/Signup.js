@@ -46,6 +46,14 @@ const styles = {
     outline: 'none',
     fontSize: '1rem'
   },
+  checkboxContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    margin: '1rem 0'
+  },
+  checkbox: {
+    marginRight: '0.5rem'
+  },
   button: {
     width: '100%',
     padding: '12px',
@@ -78,6 +86,7 @@ export default function Signup() {
   const [formData, setFormData] = useState({
     name: '', email: '', password: '', major: '', year: ''
   })
+  const [agreeToShare, setAgreeToShare] = useState(false)
   const [message, setMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
@@ -106,6 +115,10 @@ export default function Signup() {
       setMessage("Please select a valid major.")
       return false
     }
+    if (!agreeToShare) {
+      setMessage("You must agree to share your email with future matches.")
+      return false
+    }
     return true
   }
 
@@ -121,20 +134,14 @@ export default function Signup() {
         email:     formData.email.trim(),
         password:  formData.password,
         major:     formData.major,
-        year:      formData.year
+        year:      formData.year,
+        shareEmails: agreeToShare      // <-- new field
       })
-      // → On success, redirect to login
       navigate('/login', { replace: true })
     } catch (err) {
       const status = err.response?.status
       const text   = err.response?.data || err.message
-
-      if (status === 409) {
-        // Email already in use: just show the error
-        setMessage(text)
-      } else {
-        setMessage(text)
-      }
+      setMessage(text)
     } finally {
       setIsSubmitting(false)
     }
@@ -192,13 +199,27 @@ export default function Signup() {
           required
         />
 
+        {/* New agreement checkbox */}
+        <div style={styles.checkboxContainer}>
+          <input
+            type="checkbox"
+            id="agreeToShare"
+            checked={agreeToShare}
+            onChange={e => setAgreeToShare(e.target.checked)}
+            style={styles.checkbox}
+          />
+          <label htmlFor="agreeToShare">
+            I agree that StudBuds may share my email with all future matches
+          </label>
+        </div>
+
         <button
           type="submit"
           style={{
             ...styles.button,
-            ...(isSubmitting ? styles.buttonDisabled : {})
+            ...((isSubmitting || !agreeToShare) ? styles.buttonDisabled : {})
           }}
-          disabled={isSubmitting}
+          disabled={isSubmitting || !agreeToShare}
         >
           {isSubmitting ? 'Signing Up…' : 'Sign Up'}
         </button>
