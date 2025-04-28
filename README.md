@@ -185,6 +185,7 @@ Throughout the project, we ensured that all the software and libraries we used w
 ### 3.01. Strive for high quality, acceptable cost and a reasonable schedule, ensuring significant tradeoffs are clear to and accepted by the employer and the client, and are available for consideration by the user and the public.
 ### 3.05. Ensure an appropriate method is used for any project on which they work or propose to work.
 ### 3.11. Ensure adequate documentation, including significant problems discovered and solutions adopted, for any project on which they work.
+Throughout the project, we kept detailed documentation of our progress, including code comments, issues found, and solutions implemented. Additionally, we wrote comments for any code that was unclear for any future developers, and continously updated our README for any important updates to our features, tech stack, etc. For example, we created a UI diagram for our frontend system, highlighting how the requests from the users will be carried through by our features. This documentation ensured that anyone reviewing the project could easily understand the decisions made and how problems were addressed, helping maintain transparency and clarity for future development.
 
 ---
 ## 📖 License  
