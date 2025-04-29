@@ -164,18 +164,23 @@ export default function UpdatePreference({ userId }) {
     })
     .then(()   => { setMessage('Preference updated successfully.'); navigate('/matchlist'); })
     .catch(err  => {
-      let msg = 'Update failed.';
-      const data = err.response?.data;
-      if (data) {
-        if (typeof data === 'string')     msg = data;
-        else if (data.message)            msg = data.message;
-        else if (data.error)              msg = data.error;
-        else                              msg = JSON.stringify(data);
+      const status = err.response?.status;
+      // if we somehow still get a 500, treat it as “too many”
+      if (status === 500) {
+        setMessage('Too many preferences picked. Please select fewer subjects.');
+      } else {
+        // fallback to whatever the server gave us
+        const data = err.response?.data;
+        let msg = 'Update failed.';
+        if (data) {
+          if (typeof data === 'string')     msg = data;
+          else if (data.message)            msg = data.message;
+          else if (data.error)              msg = data.error;
+          else                              msg = JSON.stringify(data);
+        }
+        setMessage(msg);
       }
-      if (msg.includes('Too many')) {
-        msg = 'Too many preferences picked. Please select fewer subjects.';
-      }
-      setMessage(msg);
+      
     });
   };
 
