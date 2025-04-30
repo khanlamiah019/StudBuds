@@ -3,7 +3,12 @@ import './firebase-config';
 import axios from 'axios';
 import { getAuth } from 'firebase/auth';
 
-axios.interceptors.request.use(
+// ✅ Create an instance so we can set a base URL
+const api = axios.create({
+  baseURL: 'https://studbuds-backend.azurewebsites.net/api',
+});
+
+api.interceptors.request.use(
   async (config) => {
     const auth = getAuth();
     const currentUser = auth.currentUser;
@@ -16,4 +21,4 @@ axios.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-export default axios;
+export default api;
