@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import TinderCard from 'react-tinder-card';
-import axios from 'axios';
+import axios from '../axiosSetup';
 import { useNavigate } from 'react-router-dom';
 
 function MatchList({ userId }) {
