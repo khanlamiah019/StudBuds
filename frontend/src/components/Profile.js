@@ -62,7 +62,6 @@ function Profile({ userId, setUserId }) {
     heading: {
       textAlign: 'center',
       marginBottom: '1.5rem',
-      color: '#5ccdc1'
     },
     sectionTitle: {
       marginTop: '2rem',
