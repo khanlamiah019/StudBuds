@@ -6,6 +6,8 @@ import com.studbuds.repository.PreferenceRepository;
 import com.studbuds.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -27,5 +29,11 @@ public class TestController {
     @GetMapping("/preferences")
     public List<Preference> getAllPreferences() {
         return preferenceRepository.findAll();
+    }
+
+    
+    @GetMapping("/api/test")
+    public String test() {
+        return "Backend is running!";
     }
 }
