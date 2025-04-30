@@ -27,7 +27,7 @@ public class SecurityConfig {
             .and()
             .authorizeRequests()
                 // Allow public access for signup and login endpoints
-                .antMatchers("/api/auth/signup", "/api/auth/login").permitAll()
+                .antMatchers("/api/auth/signup", "/api/auth/login", "/api/test").permitAll()
                 // All other endpoints require authentication
                 .anyRequest().authenticated()
             .and()
