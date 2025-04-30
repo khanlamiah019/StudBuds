@@ -1,6 +1,6 @@
 // src/Profile.js
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../axiosSetup';
 import DeleteAccount from './DeleteAccount';
 import { getAuth } from 'firebase/auth';
 
