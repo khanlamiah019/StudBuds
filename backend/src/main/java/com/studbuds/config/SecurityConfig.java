@@ -20,35 +20,33 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors()  // Enable CORS
+            .cors()
             .and()
             .csrf().disable()
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
             .authorizeRequests()
-                // Allow public access for signup and login endpoints
-                .antMatchers("/api/auth/signup", "/api/auth/login", "/api/test").permitAll()
-                // All other endpoints require authentication
+                // ✅ Allow test endpoint through without auth
+                .antMatchers("/api/test/**").permitAll()
+                .antMatchers("/api/auth/signup", "/api/auth/login").permitAll()
                 .anyRequest().authenticated()
             .and()
-            // Add our Firebase authentication filter
+            // ✅ Add Firebase filter AFTER public endpoints are allowed
             .addFilterBefore(new FirebaseAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // Global CORS configuration
+    // CORS settings
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Allowed origins: adjust as needed for your frontend URLs.
         configuration.setAllowedOrigins(Arrays.asList("http://127.0.0.1:3000", "http://localhost:3000"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // Apply CORS config to all endpoints.
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
