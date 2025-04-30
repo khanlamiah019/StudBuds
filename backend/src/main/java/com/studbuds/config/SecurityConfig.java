@@ -27,7 +27,7 @@ public class SecurityConfig {
             .and()
             .authorizeRequests()
                 // ✅ Allow test endpoint through without auth
-                .antMatchers("/api/test/**").permitAll()
+                .antMatchers("/api/test/**").authenticated()
                 .antMatchers("/api/auth/signup", "/api/auth/login").permitAll()
                 .anyRequest().authenticated()
             .and()
