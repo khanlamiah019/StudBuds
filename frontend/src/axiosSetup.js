@@ -3,12 +3,16 @@ import './firebase-config';
 import axios from 'axios';
 import { getAuth } from 'firebase/auth';
 
-// ✅ Create an instance so we can set a base URL
-const api = axios.create({
-  baseURL: 'https://studbuds-backend.azurewebsites.net/api',
+// Automatically choose the backend URL based on the environment
+const BASE_URL = process.env.NODE_ENV === 'development'
+  ? 'http://localhost:8080' // Local backend for development
+  : 'https://studbuds-backend.azurewebsites.net'; // Azure backend for production
+
+const instance = axios.create({
+  baseURL: BASE_URL,
 });
 
-api.interceptors.request.use(
+instance.interceptors.request.use(
   async (config) => {
     const auth = getAuth();
     const currentUser = auth.currentUser;
@@ -21,4 +25,4 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-export default api;
+export default instance;
