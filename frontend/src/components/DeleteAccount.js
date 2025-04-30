@@ -1,6 +1,6 @@
 // src/DeleteAccount.js
 import React, { useState } from 'react';
-import axios from 'axios';
+import axios from '../axiosSetup';
 import { useNavigate } from 'react-router-dom';
 import { getAuth, signOut } from 'firebase/auth';
 
