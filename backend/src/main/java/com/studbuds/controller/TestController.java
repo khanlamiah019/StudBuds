@@ -30,10 +30,4 @@ public class TestController {
     public List<Preference> getAllPreferences() {
         return preferenceRepository.findAll();
     }
-
-    
-    @GetMapping("/api/test")
-    public String test() {
-        return "Backend is running!";
-    }
 }
