@@ -3,7 +3,7 @@ name: Deploy Backend to Azure
 on:
   push:
     branches:
-      - cloud-deployment-testing
+      - cloud-deployment-testing  # change to main once done 
 
 jobs:
   build-and-deploy:
@@ -22,12 +22,9 @@ jobs:
     - name: Build backend with Maven
       run: mvn -f ./backend/pom.xml clean package
 
-    - name: Build Docker image
-      run: docker build -t studbuds-backend ./backend
-
-    - name: Deploy to Azure Web App (Docker-based)
-      uses: azure/webapps-container-deploy@v1
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-        images: studbuds-backend
+        package: ./backend
