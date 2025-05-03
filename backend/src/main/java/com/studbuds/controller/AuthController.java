@@ -30,63 +30,61 @@ public class AuthController {
     // ─── SIGNUP ───────────────────────────────────────────────────────────────
 
     @PostMapping("/signup")
-    public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
-        String email    = req.getEmail().trim().toLowerCase();
-        String password = req.getPassword();
-        String name     = req.getName();
+public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
+    String email = req.getEmail().trim().toLowerCase();
 
-        if (!email.endsWith("@cooper.edu"))
-            return ResponseEntity.badRequest().body("Email must be a @cooper.edu address");
-        if (password == null || password.length() < 9)
-            return ResponseEntity.badRequest().body("Password must be at least 9 characters long");
-
-        // Check local DB
-        if (userRepository.findByEmailIgnoreCase(email).isPresent())
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already in use. Please log in instead.");
-
-        // Check Firebase
-        try {
-            firebaseAuth.getUserByEmail(email);
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already in use. Please log in instead.");
-        } catch (FirebaseAuthException e) {
-            if (!e.getAuthErrorCode().name().equals("USER_NOT_FOUND")) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Firebase error: " + e.getMessage());
-            }
-        }
-
-        // Create Firebase user
-        UserRecord userRecord;
-        try {
-            userRecord = firebaseAuth.createUser(new CreateRequest()
-                .setEmail(email)
-                .setPassword(password)
-                .setDisplayName(name));
-        } catch (FirebaseAuthException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Firebase error: " + e.getMessage());
-        }
-
-        // Save locally
-        User user = new User();
-        user.setName(name);
-        user.setEmail(email);
-        user.setFirebaseUid(userRecord.getUid());
-        user.setCreatedAt(LocalDateTime.now());
-        user.setMajor(req.getMajor());
-        user.setYear(req.getYear());
-        userRepository.save(user);
-
-        Preference pref = new Preference();
-        pref.setUser(user);
-        preferenceRepository.save(pref);
-
-        user.setPreference(pref);
-        userRepository.save(user);
-
-        Map<String, Object> resp = new HashMap<>();
-        resp.put("message", "User registered successfully.");
-        resp.put("userId", user.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(resp);
+    // 1) Basic checks
+    if (!email.endsWith("@cooper.edu")) {
+        return ResponseEntity.badRequest().body("Email must be a @cooper.edu address");
     }
+
+    // 2) Validate token and extract Firebase UID
+    String firebaseToken = req.getFirebaseToken();
+    if (firebaseToken == null || firebaseToken.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing Firebase token.");
+    }
+
+    FirebaseToken decoded;
+    try {
+        decoded = firebaseAuth.verifyIdToken(firebaseToken);
+    } catch (FirebaseAuthException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Firebase token.");
+    }
+
+    String uid = decoded.getUid();
+    String name = req.getName();
+
+    // 3) Prevent duplicates in local DB
+    if (userRepository.findByFirebaseUid(uid).isPresent()) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body("Account already exists. Please log in.");
+    }
+
+    // 4) Save to local DB
+    User user = new User();
+    user.setName(name);
+    user.setEmail(email);
+    user.setFirebaseUid(uid);
+    user.setCreatedAt(LocalDateTime.now());
+    user.setMajor(req.getMajor());
+    user.setYear(req.getYear());
+    userRepository.save(user);
+
+    Preference pref = new Preference();
+    pref.setUser(user);
+    pref.setAvailableDays("");
+    pref.setSubjectsToLearn("");
+    pref.setSubjectsToTeach("");
+    preferenceRepository.save(pref);
+
+    user.setPreference(pref);
+    userRepository.save(user);
+
+    Map<String,Object> resp = new HashMap<>();
+    resp.put("message", "User registered successfully.");
+    resp.put("userId", user.getId());
+    return ResponseEntity.status(HttpStatus.CREATED).body(resp);
+}
+
 
     // ─── LOGIN ────────────────────────────────────────────────────────────────
 
