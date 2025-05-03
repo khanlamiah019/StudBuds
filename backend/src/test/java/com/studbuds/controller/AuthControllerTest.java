@@ -195,10 +195,15 @@ class AuthControllerTest {
         when(userRepository.findByFirebaseUid("uid-xyz"))
             .thenReturn(Optional.empty());
 
+        // 🔧 Mock FirebaseAuth.getUser so it doesn't return null
+        UserRecord mockRecord = mock(UserRecord.class);
+        when(firebaseAuth.getUser("uid-xyz")).thenReturn(mockRecord);
+
         ResponseEntity<?> resp = authController.login(loginReq, null);
         assertEquals(HttpStatus.NOT_FOUND, resp.getStatusCode());
         assertEquals("No local account found. Please sign up first.", resp.getBody());
     }
+
 
     // ─── DELETE ACCOUNT ──────────────────────────────────────────────────────
 
