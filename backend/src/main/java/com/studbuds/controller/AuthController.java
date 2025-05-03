@@ -104,12 +104,12 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(resp);
     }
 
-    // ─── LOGIN ────────────────────────────────────────────────────────────────
+// ─── LOGIN ────────────────────────────────────────────────────────────────
 
-    @PostMapping("/login")
+@PostMapping("/login")
 public ResponseEntity<?> login(
-    @RequestBody(required=false) LoginRequest body,
-    @RequestHeader(value="Authorization", required=false) String header
+    @RequestBody(required = false) LoginRequest body,
+    @RequestHeader(value = "Authorization", required = false) String header
 ) {
     String idToken = null;
     if (header != null && header.startsWith("Bearer ")) {
@@ -117,6 +117,7 @@ public ResponseEntity<?> login(
     } else if (body != null && body.getFirebaseToken() != null) {
         idToken = body.getFirebaseToken();
     }
+
     if (idToken == null) {
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
@@ -128,36 +129,15 @@ public ResponseEntity<?> login(
         String uid = decoded.getUid();
 
         Optional<User> userOpt = userRepository.findByFirebaseUid(uid);
-        User user;
-        if (userOpt.isPresent()) {
-            user = userOpt.get();
-        } else {
-            // If Firebase user exists but local DB doesn't, create local user record
-            UserRecord record = firebaseAuth.getUser(uid);
-            user = new User();
-            user.setName(record.getDisplayName());
-            user.setEmail(record.getEmail());
-            user.setFirebaseUid(uid);
-            user.setCreatedAt(LocalDateTime.now());
-            user.setMajor("");
-            user.setYear("");
-            user = userRepository.save(user);
-
-            // Create empty preferences too
-            Preference pref = new Preference();
-            pref.setUser(user);
-            pref.setAvailableDays("");
-            pref.setSubjectsToLearn("");
-            pref.setSubjectsToTeach("");
-            preferenceRepository.save(pref);
-
-            user.setPreference(pref);
-            userRepository.save(user);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body("No local account found. Please sign up first.");
         }
 
-        Map<String,Object> resp = new HashMap<>();
+        Map<String, Object> resp = new HashMap<>();
         resp.put("message", "Login successful.");
-        resp.put("userId", user.getId());
+        resp.put("userId", userOpt.get().getId());
         return ResponseEntity.ok(resp);
 
     } catch (FirebaseAuthException e) {
