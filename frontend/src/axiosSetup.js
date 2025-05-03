@@ -3,13 +3,13 @@ import './firebase-config';
 import axios from 'axios';
 import { getAuth } from 'firebase/auth';
 
-// Automatically choose the backend URL based on the environment
-const BASE_URL = process.env.NODE_ENV === 'development'
-  ? 'http://localhost:8080' // Local backend for development
-  : 'https://studbuds-backend.azurewebsites.net'; // Azure backend for production
+const BASE_URL = window.location.hostname.includes('localhost')
+  ? 'http://localhost:8080'
+  : 'https://studbuds-backend.azurewebsites.net'; // Always use HTTPS in prod
 
 const instance = axios.create({
   baseURL: BASE_URL,
+  withCredentials: true, // Just in case cookies are ever used
 });
 
 instance.interceptors.request.use(
