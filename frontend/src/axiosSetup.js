@@ -3,9 +3,7 @@ import './firebase-config';
 import axios from 'axios';
 import { getAuth } from 'firebase/auth';
 
-const BASE_URL = window.location.hostname.includes('localhost')
-  ? 'http://localhost:8080'
-  : 'https://studbuds-backend.azurewebsites.net'; // Always use HTTPS in prod
+const BASE_URL = 'https://studbuds-backend.azurewebsites.net'; // ✅ Force Azure for prod
 
 const instance = axios.create({
   baseURL: BASE_URL,
