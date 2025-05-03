@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import axios from '../axiosSetup';
 import { useNavigate, Link } from 'react-router-dom';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 
 const allowedMajors = [
   "Electrical Engineering",
@@ -123,29 +124,48 @@ export default function Signup() {
   }
 
   const handleSubmit = async e => {
-    e.preventDefault()
-    setMessage('')
-    if (!validateForm()) return
+  e.preventDefault();
+  setMessage('');
+  if (!validateForm()) return;
 
-    setIsSubmitting(true)
-    try {
-      await axios.post('/api/auth/signup', {
-        name:      formData.name.trim(),
-        email:     formData.email.trim(),
-        password:  formData.password,
-        major:     formData.major,
-        year:      formData.year,
-        shareEmails: agreeToShare      // <-- new field
-      })
-      navigate('/login', { replace: true })
-    } catch (err) {
-      const status = err.response?.status
-      const text   = err.response?.data || err.message
-      setMessage(text)
-    } finally {
-      setIsSubmitting(false)
-    }
+  setIsSubmitting(true);
+  try {
+    const { email, password } = formData;
+    const auth = getAuth();
+
+    // 1. Create the user in Firebase Auth (frontend)
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // 2. Get the Firebase ID token
+    const idToken = await user.getIdToken();
+
+    // 3. Send the token + other fields to your backend
+    await axios.post(
+      '/api/auth/signup',
+      {
+        name: formData.name.trim(),
+        email: email.trim(),
+        major: formData.major,
+        year: formData.year,
+        shareEmails: agreeToShare
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${idToken}`
+        }
+      }
+    );
+
+    navigate('/login', { replace: true });
+  } catch (err) {
+    const status = err.response?.status;
+    const text = err.response?.data || err.message;
+    setMessage(text);
+  } finally {
+    setIsSubmitting(false);
   }
+};
 
   return (
     <div style={styles.container}>
