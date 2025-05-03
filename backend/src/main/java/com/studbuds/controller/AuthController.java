@@ -204,3 +204,4 @@ public ResponseEntity<?> deleteAccount(
             .body(Map.of("message","Firebase error: " + e.getMessage()));
     }
 }
+}
