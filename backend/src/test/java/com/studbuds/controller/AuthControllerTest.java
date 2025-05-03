@@ -64,30 +64,25 @@ class AuthControllerTest {
             .thenReturn(Optional.empty());
 
         FirebaseAuthException notFoundEx = mock(FirebaseAuthException.class);
-        when(notFoundEx.getAuthErrorCode())
-            .thenReturn(AuthErrorCode.USER_NOT_FOUND);
-        when(firebaseAuth.getUserByEmail(anyString()))
-            .thenThrow(notFoundEx);
+        when(notFoundEx.getAuthErrorCode()).thenReturn(AuthErrorCode.USER_NOT_FOUND);
+        when(firebaseAuth.getUserByEmail(anyString())).thenThrow(notFoundEx);
 
         UserRecord record = mock(UserRecord.class);
         when(record.getUid()).thenReturn("uid-xyz");
-        when(firebaseAuth.createUser(any(CreateRequest.class)))
-            .thenReturn(record);
+        when(firebaseAuth.createUser(any(CreateRequest.class))).thenReturn(record);
 
-        when(userRepository.save(any(User.class)))
-            .thenAnswer(inv -> {
-                User u = inv.getArgument(0);
-                u.setId(99L);
-                return u;
-            });
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> {
+            User u = inv.getArgument(0);
+            u.setId(99L);
+            return u;
+        });
+
         when(preferenceRepository.save(any(Preference.class)))
             .thenAnswer(inv -> inv.getArgument(0));
 
         ResponseEntity<?> resp = authController.signUp(signupReq);
         assertEquals(HttpStatus.CREATED, resp.getStatusCode());
-
-        @SuppressWarnings("unchecked")
-        Map<String,?> body = (Map<String,?>)resp.getBody();
+        Map<String, ?> body = (Map<String, ?>) resp.getBody();
         assertEquals("User registered successfully.", body.get("message"));
         assertEquals(99L, body.get("userId"));
     }
@@ -115,15 +110,13 @@ class AuthControllerTest {
             .thenReturn(Optional.empty());
 
         FirebaseAuthException otherEx = mock(FirebaseAuthException.class);
-        when(otherEx.getAuthErrorCode())
-            .thenReturn(AuthErrorCode.EMAIL_ALREADY_EXISTS);
+        when(otherEx.getAuthErrorCode()).thenReturn(AuthErrorCode.EMAIL_ALREADY_EXISTS);
         when(otherEx.getMessage()).thenReturn("boom");
-        when(firebaseAuth.getUserByEmail(anyString()))
-            .thenThrow(otherEx);
+        when(firebaseAuth.getUserByEmail(anyString())).thenThrow(otherEx);
 
         ResponseEntity<?> resp = authController.signUp(signupReq);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, resp.getStatusCode());
-        assertTrue(((String)resp.getBody()).contains("Firebase error"));
+        assertTrue(((String) resp.getBody()).contains("Firebase error"));
     }
 
     @Test
@@ -133,17 +126,15 @@ class AuthControllerTest {
 
         FirebaseAuthException nf = mock(FirebaseAuthException.class);
         when(nf.getAuthErrorCode()).thenReturn(AuthErrorCode.USER_NOT_FOUND);
-        when(firebaseAuth.getUserByEmail(anyString()))
-            .thenThrow(nf);
+        when(firebaseAuth.getUserByEmail(anyString())).thenThrow(nf);
 
         FirebaseAuthException createEx = mock(FirebaseAuthException.class);
         when(createEx.getMessage()).thenReturn("pw too weak");
-        when(firebaseAuth.createUser(any(CreateRequest.class)))
-            .thenThrow(createEx);
+        when(firebaseAuth.createUser(any(CreateRequest.class))).thenThrow(createEx);
 
         ResponseEntity<?> resp = authController.signUp(signupReq);
         assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
-        assertTrue(((String)resp.getBody()).contains("Firebase error"));
+        assertTrue(((String) resp.getBody()).contains("Firebase error"));
     }
 
     // ─── LOGIN ────────────────────────────────────────────────────────────────
@@ -155,14 +146,12 @@ class AuthControllerTest {
         when(firebaseAuth.verifyIdToken("good-token")).thenReturn(token);
 
         User u = new User(); u.setId(55L);
-        when(userRepository.findByFirebaseUid("uid-xyz"))
-            .thenReturn(Optional.of(u));
+        when(userRepository.findByFirebaseUid("uid-xyz")).thenReturn(Optional.of(u));
 
         ResponseEntity<?> resp = authController.login(loginReq, null);
         assertEquals(HttpStatus.OK, resp.getStatusCode());
 
-        @SuppressWarnings("unchecked")
-        Map<String,?> body = (Map<String,?>)resp.getBody();
+        Map<String, ?> body = (Map<String, ?>) resp.getBody();
         assertEquals("Login successful.", body.get("message"));
         assertEquals(55L, body.get("userId"));
     }
@@ -176,10 +165,8 @@ class AuthControllerTest {
 
     @Test
     void login_invalidToken() throws Exception {
-        // Only stub the verify call; exception content isn't inspected
         FirebaseAuthException invalidEx = mock(FirebaseAuthException.class);
-        when(firebaseAuth.verifyIdToken(anyString()))
-            .thenThrow(invalidEx);
+        when(firebaseAuth.verifyIdToken(anyString())).thenThrow(invalidEx);
 
         ResponseEntity<?> resp = authController.login(loginReq, null);
         assertEquals(HttpStatus.UNAUTHORIZED, resp.getStatusCode());
@@ -192,18 +179,12 @@ class AuthControllerTest {
         when(token.getUid()).thenReturn("uid-xyz");
         when(firebaseAuth.verifyIdToken("good-token")).thenReturn(token);
 
-        when(userRepository.findByFirebaseUid("uid-xyz"))
-            .thenReturn(Optional.empty());
-
-        // 🔧 Mock FirebaseAuth.getUser so it doesn't return null
-        UserRecord mockRecord = mock(UserRecord.class);
-        when(firebaseAuth.getUser("uid-xyz")).thenReturn(mockRecord);
+        when(userRepository.findByFirebaseUid("uid-xyz")).thenReturn(Optional.empty());
 
         ResponseEntity<?> resp = authController.login(loginReq, null);
         assertEquals(HttpStatus.NOT_FOUND, resp.getStatusCode());
         assertEquals("No local account found. Please sign up first.", resp.getBody());
     }
-
 
     // ─── DELETE ACCOUNT ──────────────────────────────────────────────────────
 
@@ -214,16 +195,13 @@ class AuthControllerTest {
         when(firebaseAuth.verifyIdToken("good-token")).thenReturn(token);
 
         User u = new User();
-        when(userRepository.findByFirebaseUid("uid-xyz"))
-            .thenReturn(Optional.of(u));
-        when(preferenceRepository.findByUser(u))
-            .thenReturn(Optional.of(new Preference()));
+        when(userRepository.findByFirebaseUid("uid-xyz")).thenReturn(Optional.of(u));
+        when(preferenceRepository.findByUser(u)).thenReturn(Optional.of(new Preference()));
 
         ResponseEntity<?> resp = authController.deleteAccount(deleteReq, null);
         assertEquals(HttpStatus.OK, resp.getStatusCode());
 
-        @SuppressWarnings("unchecked")
-        Map<String,?> body = (Map<String,?>)resp.getBody();
+        Map<String, ?> body = (Map<String, ?>) resp.getBody();
         assertEquals("Account deleted successfully.", body.get("message"));
 
         verify(firebaseAuth).deleteUser("uid-xyz");
@@ -236,8 +214,7 @@ class AuthControllerTest {
         ResponseEntity<?> resp = authController.deleteAccount(null, null);
         assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
 
-        @SuppressWarnings("unchecked")
-        Map<String,String> body = (Map<String,String>)resp.getBody();
+        Map<String, String> body = (Map<String, String>) resp.getBody();
         assertEquals("Missing Firebase token", body.get("message"));
     }
 
@@ -247,20 +224,17 @@ class AuthControllerTest {
         when(token.getUid()).thenReturn("uid-xyz");
         when(firebaseAuth.verifyIdToken("good-token")).thenReturn(token);
 
-        when(userRepository.findByFirebaseUid("uid-xyz"))
-            .thenReturn(Optional.empty());
+        when(userRepository.findByFirebaseUid("uid-xyz")).thenReturn(Optional.empty());
 
         ResponseEntity<?> resp = authController.deleteAccount(deleteReq, null);
         assertEquals(HttpStatus.NOT_FOUND, resp.getStatusCode());
 
-        @SuppressWarnings("unchecked")
-        Map<String,String> body = (Map<String,String>)resp.getBody();
+        Map<String, String> body = (Map<String, String>) resp.getBody();
         assertEquals("User not found.", body.get("message"));
     }
 
     @Test
     void deleteAccount_firebaseError() throws Exception {
-        // Only stub message, since controller only uses getMessage()
         FirebaseAuthException err = mock(FirebaseAuthException.class);
         when(err.getMessage()).thenReturn("boom");
         when(firebaseAuth.verifyIdToken("good-token")).thenThrow(err);
@@ -268,8 +242,7 @@ class AuthControllerTest {
         ResponseEntity<?> resp = authController.deleteAccount(deleteReq, null);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, resp.getStatusCode());
 
-        @SuppressWarnings("unchecked")
-        Map<String,String> body = (Map<String,String>)resp.getBody();
+        Map<String, String> body = (Map<String, String>) resp.getBody();
         assertTrue(body.get("message").contains("Firebase error: boom"));
     }
 }
