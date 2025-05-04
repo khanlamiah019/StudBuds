@@ -329,32 +329,6 @@ export default function UpdatePreference({ userId }) {
     setWarning(''); // Clear warning if both are selected
   }
 
-  axios.post(`/api/user/${userId}/preference`, {
-    availableDays: selectedDays.join(', '),
-    subjectsToLearn: toLearn.join(', '),
-    subjectsToTeach: toTeach.join(', ')
-  })
-    .then(() => {
-      setMessage('Preference updated successfully.');
-      navigate('/matchlist');
-    })
-    .catch(err => {
-      const status = err.response?.status;
-      if (status === 500) {
-        setMessage('Too many preferences picked. Please select fewer subjects.');
-      } else {
-        const data = err.response?.data;
-        let msg = 'Update failed.';
-        if (data) {
-          if (typeof data === 'string') msg = data;
-          else if (data.message) msg = data.message;
-          else if (data.error) msg = data.error;
-          else msg = JSON.stringify(data);
-        }
-        setMessage(msg);
-      }
-    });
-};
     axios.post(`/api/user/${userId}/preference`, {
       availableDays: selectedDays.join(', '),
       subjectsToLearn: toLearn.join(', '),
