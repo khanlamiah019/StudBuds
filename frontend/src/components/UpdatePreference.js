@@ -416,38 +416,68 @@ export default function UpdatePreference({ userId }) {
     setSubjectState(name, nextState);
   }}
   style={{
-    marginLeft: isMobile ? '12px' : undefined,
-    width: '60px',
-    height: '60px',
-    borderRadius: '50% 50% 40% 40% / 60% 60% 40% 40%',
-    background:
-      subjectStates[name] === 'learn'
-        ? 'radial-gradient(circle at 30% 30%, #aef4ff, #5ccdc1)'
-        : subjectStates[name] === 'teach'
-          ? 'radial-gradient(circle at 30% 30%, #c3fccc, #84e1a8)'
-          : 'radial-gradient(circle at 30% 30%, #fdf6e3, #e0d8c3)',
-    boxShadow:
-      subjectStates[name] === 'none'
-        ? 'inset 0 0 4px rgba(0,0,0,0.1)'
-        : '0 0 8px rgba(0,0,0,0.2)',
+    position: 'relative',
+    width: isMobile ? '48px' : '60px',
+    height: isMobile ? '48px' : '60px',
+    cursor: 'pointer',
+    marginLeft: isMobile ? '8px' : '16px',
+    userSelect: 'none',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    cursor: 'pointer',
-    fontSize: '0.75rem',
-    fontWeight: 'bold',
-    color: subjectStates[name] === 'none' ? '#555' : '#fff',
-    transition: 'all 0.3s ease',
-    userSelect: 'none'
+    flexShrink: 0,
+    transition: 'all 0.2s ease'
   }}
   title="Click to toggle: None → Learn → Teach"
 >
-  {
-    subjectStates[name] === 'learn' ? 'Learn' :
-    subjectStates[name] === 'teach' ? 'Teach' :
-    'None'
-  }
+  {/* Bottom shell */}
+  <div style={{
+    width: '100%',
+    height: '50%',
+    background: 'radial-gradient(circle at 50% 10%, #fff8e1, #e0c7a9)',
+    borderBottomLeftRadius: '100% 100%',
+    borderBottomRightRadius: '100% 100%',
+    position: 'absolute',
+    bottom: 0,
+    zIndex: 1,
+    boxShadow: 'inset 0 -2px 4px rgba(0,0,0,0.1)'
+  }} />
+
+  {/* Top shell */}
+  <div style={{
+    width: '100%',
+    height: '50%',
+    background:
+      subjectStates[name] === 'learn'
+        ? 'radial-gradient(circle at 50% 90%, #aef4ff, #5ccdc1)'
+        : subjectStates[name] === 'teach'
+          ? 'radial-gradient(circle at 50% 90%, #c3fccc, #84e1a8)'
+          : 'radial-gradient(circle at 50% 90%, #fff8e1, #e0c7a9)',
+    borderTopLeftRadius: '100% 100%',
+    borderTopRightRadius: '100% 100%',
+    position: 'absolute',
+    top: 0,
+    zIndex: 2,
+    transform: subjectStates[name] === 'none' ? 'rotateX(0deg)' : 'rotateX(18deg)',
+    transformOrigin: 'bottom',
+    transition: 'transform 0.3s ease'
+  }} />
+
+  {/* Text label in center */}
+  <span style={{
+    zIndex: 3,
+    fontSize: isMobile ? '0.65rem' : '0.75rem',
+    fontWeight: 600,
+    color: subjectStates[name] === 'none' ? '#444' : '#fff',
+    textShadow: subjectStates[name] !== 'none' ? '0 1px 2px rgba(0,0,0,0.3)' : 'none'
+  }}>
+    {
+      subjectStates[name] === 'learn' ? 'Learn' :
+      subjectStates[name] === 'teach' ? 'Teach' : ''
+    }
+  </span>
 </div>
+// edit the above if it doesn't look right 
             </div>
           ))}
       </div>
