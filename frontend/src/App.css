@@ -143,3 +143,37 @@ button:hover {
   text-align: center;
   margin-top: 1rem;
 }
+
+/* Fix spacing between nav and content */
+.container {
+  padding: 1rem;
+}
+
+/* Ensure nav items are centered and evenly spaced on mobile */
+@media (max-width: 768px) {
+  nav ul {
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--primary-color);
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    padding: 1rem 0;
+    gap: 1rem;
+    display: none;
+  }
+
+  .menu-open {
+    display: flex !important;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  .container {
+    padding-top: 1rem;
+  }
+}
