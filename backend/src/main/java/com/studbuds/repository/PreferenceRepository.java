@@ -13,21 +13,8 @@ import java.util.Optional;
 public interface PreferenceRepository extends JpaRepository<Preference, Long> {
     Optional<Preference> findByUser(User user);
 
-    // OLD VERSION (still useful if you want the raw list)
     @Query("SELECT p FROM Preference p WHERE p.user.major = :major AND p.user.year = :year AND p.user.id <> :userId")
-    List<Preference> findSimilarPreferences(@Param("major") String major, @Param("year") String year, @Param("userId") Long userId);
-
-    // ✅ NEW VERSION — Excludes already-swiped users
-    @Query("""
-        SELECT p FROM Preference p
-        WHERE p.user.major = :major
-          AND p.user.year = :year
-          AND p.user.id <> :userId
-          AND p.user.id NOT IN (
-              SELECT s.target.id FROM Swipe s WHERE s.source.id = :userId
-          )
-    """)
-    List<Preference> findUnswipedSimilarPreferences(
+    List<Preference> findSimilarPreferences(
         @Param("major") String major,
         @Param("year") String year,
         @Param("userId") Long userId
