@@ -30,7 +30,7 @@ public class SecurityConfig {
                 .antMatchers("/api/test/**").authenticated()
                 .antMatchers("/api/auth/signup", "/api/auth/login").permitAll()
                 .anyRequest().authenticated()
-            .and()
+            // .and()
             // ✅ Add Firebase filter AFTER public endpoints are allowed
             // .addFilterBefore(new FirebaseAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
