@@ -369,42 +369,45 @@ export default function UpdatePreference({ userId }) {
               {warning}
             </p>
           )}
-          <div style={isMobile
-            ? { ...styles.subjectGrid, ...mobileSubjectGrid }
-            : styles.subjectGrid
-          }>
-            {filteredSubjects.map(({ name }) => (
-              <div
-                key={name}
-                style={isMobile ? { ...styles.subjectRow, ...mobileOverrides.subjectRow } : styles.subjectRow}
-              >
-                <span style={styles.subjectName}>{name}</span>
-                <div
-                  style={isMobile ? { ...styles.switchWrapper, ...mobileOverrides.switchWrapper } : styles.switchWrapper}
-                >
-                  <div style={styles.switchCircle(subjectStates[name])} />
-                  <div
-                    style={styles.switchZone}
-                    onClick={() => setSubjectState(name, 'learn')}
-                  >
-                    Learn
-                  </div>
-                  <div
-                    style={styles.switchZone}
-                    onClick={() => setSubjectState(name, 'none')}
-                  >
-                    None
-                  </div>
-                  <div
-                    style={styles.switchZone}
-                    onClick={() => setSubjectState(name, 'teach')}
-                  >
-                    Teach
-                  </div>
+          <div style={{ width: '100%' }}>
+  <div style={isMobile
+    ? { ...styles.subjectGrid, ...mobileSubjectGrid }
+    : styles.subjectGrid
+  }>
+    {filteredSubjects.map(({ name }) => (
+      <div
+        key={name}
+        style={isMobile ? { ...styles.subjectRow, ...mobileOverrides.subjectRow } : styles.subjectRow}
+      >
+        <span style={styles.subjectName}>{name}</span>
+        <div
+          style={isMobile ? { ...styles.switchWrapper, ...mobileOverrides.switchWrapper } : styles.switchWrapper}
+        >
+          <div style={styles.switchCircle(subjectStates[name])} />
+          <div
+            style={styles.switchZone}
+            onClick={() => setSubjectState(name, 'learn')}
+          >
+            Learn
+          </div>
+          <div
+            style={styles.switchZone}
+            onClick={() => setSubjectState(name, 'none')}
+          >
+            None
+          </div>
+          <div
+            style={styles.switchZone}
+            onClick={() => setSubjectState(name, 'teach')}
+          >
+            Teach
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
+      </div>
+    </div>
+
         </fieldset>
 
         <div style={styles.buttonContainer}>
