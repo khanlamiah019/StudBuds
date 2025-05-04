@@ -28,7 +28,7 @@ public class SecurityConfig {
             .authorizeRequests()
                 .antMatchers("/api/test/**").authenticated()
                 .antMatchers("/api/auth/signup", "/api/auth/login").permitAll()
-                .anyRequest().authenticated();
+                .anyRequest().authenticated()
                 .and()
                 .addFilterBefore(new FirebaseAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
