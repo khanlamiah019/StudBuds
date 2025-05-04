@@ -54,18 +54,12 @@ public class AuthController {
 
 Optional<User> existingUser = userRepository.findByEmailIgnoreCase(email);
 if (existingUser.isPresent()) {
-    if (!existingUser.get().getFirebaseUid().equals(uid)) {
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-            .body("This email is already tied to a different account.");
-    }
-
-    // Clean up the stale local record
+    // 💥 Always allow signup to recover the email, regardless of UID mismatch
+    System.out.println("[⚠️] Existing user found by email. Cleaning up local record...");
     preferenceRepository.findByUser(existingUser.get()).ifPresent(preferenceRepository::delete);
     userRepository.delete(existingUser.get());
     userRepository.flush();
-    System.out.println("[⚠️] Cleaned up stale user record for email: " + email);
 }
-
 
         User user = new User();
         user.setName(name);
