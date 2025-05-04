@@ -262,6 +262,7 @@ export default function UpdatePreference({ userId }) {
           SUBJECTS_WITH_CATEGORIES.reduce((acc, sub) => ({ ...acc, [sub.name]: 'none' }), {})
         );
         setMessage('Preferences cleared.');
+        setTimeout(() => setMessage(''), 3000); // Clear message after 3 seconds
       })
       .catch(() => setMessage('Failed to clear preferences.'));
   };
