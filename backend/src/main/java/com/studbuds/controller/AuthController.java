@@ -24,6 +24,7 @@ public class AuthController {
     @Autowired private UserRepository userRepository;
     @Autowired private PreferenceRepository preferenceRepository;
     @Autowired private FirebaseAuth firebaseAuth;
+    @Autowired private SwipeRepository swipeRepository;
 
     @PostMapping("/signup")
 public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
