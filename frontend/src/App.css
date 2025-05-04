@@ -209,17 +209,10 @@ button:hover {
 @keyframes swim {
   0% {
     left: -10%;
-    transform: scaleX(1);
-  }
-  50% {
-    left: 50%;
-    transform: scaleX(1);
-  }
-  51% {
-    transform: scaleX(-1); /* flip horizontally */
+    transform: scaleX(-1); /* facing right */
   }
   100% {
     left: 110%;
-    transform: scaleX(-1);
+    transform: scaleX(-1); /* keep facing right */
   }
 }
