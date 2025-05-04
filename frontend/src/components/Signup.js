@@ -50,36 +50,37 @@ export default function Signup() {
     return true;
   };
 
-  const handleSubmit = async e => {
-    e.preventDefault();
-    setMessage('');
-    if (!validateForm()) return;
+  import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 
-    setIsSubmitting(true);
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        formData.email,
-        formData.password
-      );
-      const token = await userCredential.user.getIdToken();
+const handleSubmit = async e => {
+  e.preventDefault();
+  setMessage('');
+  if (!validateForm()) return;
 
-      await axios.post('/api/auth/signup', {
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        major: formData.major,
-        year: formData.year,
-        firebaseToken: token
-      });
+  setIsSubmitting(true);
+  try {
+    const auth = getAuth();
+    const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+    const token = await userCredential.user.getIdToken();
 
-      navigate('/login', { replace: true });
-    } catch (err) {
-      const msg = err.response?.data || err.message;
-      setMessage(msg);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    await axios.post('/api/auth/signup', {
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      password: formData.password,
+      major: formData.major,
+      year: formData.year,
+      firebaseToken: token
+    });
+
+    navigate('/login', { replace: true });
+  } catch (err) {
+    const status = err.response?.status;
+    const text = err.response?.data || err.message;
+    setMessage(text);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div style={{ maxWidth: '400px', margin: '2rem auto' }}>
