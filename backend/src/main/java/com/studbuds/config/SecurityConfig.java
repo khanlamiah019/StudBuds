@@ -32,7 +32,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             .and()
             // ✅ Add Firebase filter AFTER public endpoints are allowed
-            .addFilterBefore(new FirebaseAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+            // .addFilterBefore(new FirebaseAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
