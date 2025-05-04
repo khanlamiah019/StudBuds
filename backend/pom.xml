@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" 
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
-         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
    <modelVersion>4.0.0</modelVersion>
+
    <groupId>com.studbuds</groupId>
    <artifactId>studbuds-backend</artifactId>
    <version>0.0.1-SNAPSHOT</version>
    <packaging>jar</packaging>
+
    <name>studbuds-backend</name>
    <description>Study Buddy Matching Backend</description>
 
@@ -15,7 +16,7 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-parent</artifactId>
       <version>2.7.8</version>
-      <relativePath/>
+      <relativePath/> <!-- lookup parent from repository -->
    </parent>
 
    <properties>
@@ -23,6 +24,7 @@
    </properties>
 
    <dependencies>
+      <!-- Web + JPA + Security -->
       <dependency>
          <groupId>org.springframework.boot</groupId>
          <artifactId>spring-boot-starter-web</artifactId>
@@ -35,46 +37,68 @@
          <groupId>org.springframework.boot</groupId>
          <artifactId>spring-boot-starter-security</artifactId>
       </dependency>
+
+      <!-- PostgreSQL -->
       <dependency>
          <groupId>org.postgresql</groupId>
          <artifactId>postgresql</artifactId>
          <scope>runtime</scope>
       </dependency>
-      <dependency>
-         <groupId>org.projectlombok</groupId>
-         <artifactId>lombok</artifactId>
-         <optional>true</optional>
-      </dependency>
+
+      <!-- Firebase -->
       <dependency>
          <groupId>com.google.firebase</groupId>
          <artifactId>firebase-admin</artifactId>
          <version>8.1.0</version>
       </dependency>
+
+      <!-- Lombok (optional, useful for getters/setters) -->
+      <dependency>
+         <groupId>org.projectlombok</groupId>
+         <artifactId>lombok</artifactId>
+         <optional>true</optional>
+      </dependency>
+
+      <!-- Testing -->
       <dependency>
          <groupId>org.springframework.boot</groupId>
          <artifactId>spring-boot-starter-test</artifactId>
          <scope>test</scope>
+         <exclusions>
+            <exclusion>
+               <groupId>org.junit.vintage</groupId>
+               <artifactId>junit-vintage-engine</artifactId>
+            </exclusion>
+         </exclusions>
       </dependency>
+
       <dependency>
          <groupId>org.mockito</groupId>
          <artifactId>mockito-junit-jupiter</artifactId>
          <version>4.8.1</version>
          <scope>test</scope>
       </dependency>
+
       <dependency>
          <groupId>org.mockito</groupId>
          <artifactId>mockito-inline</artifactId>
          <version>4.8.0</version>
          <scope>test</scope>
       </dependency>
+
       <dependency>
-         <groupId>junit</groupId>
-         <artifactId>junit</artifactId>
-         <version>4.11</version>
+         <groupId>org.assertj</groupId>
+         <artifactId>assertj-core</artifactId>
+         <version>3.24.2</version>
          <scope>test</scope>
       </dependency>
 
-      <!-- ✅ Fix SLF4J crash: add logging backend -->
+      <!-- SLF4J Logging Implementation -->
+      <dependency>
+         <groupId>org.slf4j</groupId>
+         <artifactId>slf4j-api</artifactId>
+         <version>1.7.36</version>
+      </dependency>
       <dependency>
          <groupId>ch.qos.logback</groupId>
          <artifactId>logback-classic</artifactId>
@@ -86,14 +110,6 @@
       <plugins>
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>3.0.0-M5</version>
-            <configuration>
-               <argLine>-Dnet.bytebuddy.experimental=true</argLine>
-            </configuration>
-         </plugin>
-         <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
             <version>3.10.1</version>
             <configuration>
@@ -101,9 +117,19 @@
                <target>11</target>
             </configuration>
          </plugin>
+
          <plugin>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-maven-plugin</artifactId>
+         </plugin>
+
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>3.0.0-M5</version>
+            <configuration>
+               <argLine>-Dnet.bytebuddy.experimental=true</argLine>
+            </configuration>
          </plugin>
       </plugins>
    </build>
