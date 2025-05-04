@@ -300,6 +300,16 @@ export default function UpdatePreference({ userId }) {
   });
 
   const total = toLearn.length + toTeach.length;
+  if (total === 0) {
+  setWarning("You must select at least one subject to learn or teach.");
+  return;
+  }
+    
+  // ✅ Clear warning if user has now selected at least one
+  if (warning && total > 0) {
+    setWarning('');
+  }  
+    
   if (total > 14) {
     setWarning(`You’ve selected ${total} subjects. Please limit to 14.`);
     return;
