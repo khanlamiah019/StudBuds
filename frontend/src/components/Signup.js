@@ -1,4 +1,3 @@
-// src/components/Signup.js
 import React, { useState } from 'react';
 import axios from '../axiosSetup';
 import { useNavigate, Link } from 'react-router-dom';
@@ -20,8 +19,7 @@ export default function Signup() {
   const auth = getAuth();
 
   const handleChange = e => {
-    let val = e.target.value;
-    if (e.target.name === 'email') val = val.toLowerCase();
+    const val = e.target.name === 'email' ? e.target.value.toLowerCase() : e.target.value;
     setFormData(fd => ({ ...fd, [e.target.name]: val }));
   };
 
@@ -50,54 +48,51 @@ export default function Signup() {
     return true;
   };
 
-  import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+  const handleSubmit = async e => {
+    e.preventDefault();
+    setMessage('');
+    if (!validateForm()) return;
 
-const handleSubmit = async e => {
-  e.preventDefault();
-  setMessage('');
-  if (!validateForm()) return;
+    setIsSubmitting(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+      const token = await userCredential.user.getIdToken();
 
-  setIsSubmitting(true);
-  try {
-    const auth = getAuth();
-    const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-    const token = await userCredential.user.getIdToken();
+      await axios.post('/api/auth/signup', {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+        major: formData.major,
+        year: formData.year,
+        firebaseToken: token
+      });
 
-    await axios.post('/api/auth/signup', {
-      name: formData.name.trim(),
-      email: formData.email.trim(),
-      password: formData.password,
-      major: formData.major,
-      year: formData.year,
-      firebaseToken: token
-    });
-
-    navigate('/login', { replace: true });
-  } catch (err) {
-    const status = err.response?.status;
-    const text = err.response?.data || err.message;
-    setMessage(text);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+      navigate('/login', { replace: true });
+    } catch (err) {
+      const text = err.response?.data || err.message;
+      setMessage(text);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div style={{ maxWidth: '400px', margin: '2rem auto' }}>
       <h2>Sign Up</h2>
       <form onSubmit={handleSubmit}>
         <input name="name" value={formData.name} onChange={handleChange} placeholder="Name" required />
-        <input name="email" value={formData.email} onChange={handleChange} placeholder="Email" type="email" required />
-        <input name="password" value={formData.password} onChange={handleChange} placeholder="Password" type="password" required />
+        <input name="email" type="email" value={formData.email} onChange={handleChange} placeholder="Email" required />
+        <input name="password" type="password" value={formData.password} onChange={handleChange} placeholder="Password" required />
         <select name="major" value={formData.major} onChange={handleChange} required>
           <option value="">Select Major</option>
           {allowedMajors.map(m => <option key={m} value={m}>{m}</option>)}
         </select>
-        <input name="year" value={formData.year} onChange={handleChange} placeholder="Graduation Year" type="number" required />
+        <input name="year" type="number" value={formData.year} onChange={handleChange} placeholder="Year" required />
         <label>
-          <input type="checkbox" checked={agreeToShare} onChange={() => setAgreeToShare(!agreeToShare)} /> I agree to share my email with matches
+          <input type="checkbox" checked={agreeToShare} onChange={() => setAgreeToShare(!agreeToShare)} />
+          I agree to share my email with matches
         </label>
-        <button disabled={isSubmitting || !agreeToShare}>
+        <button type="submit" disabled={isSubmitting || !agreeToShare}>
           {isSubmitting ? 'Signing up...' : 'Sign Up'}
         </button>
       </form>
