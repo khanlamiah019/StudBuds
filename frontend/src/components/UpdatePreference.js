@@ -205,6 +205,15 @@ export default function UpdatePreference({ userId }) {
   // Overrides for mobile view
   const mobileContainer = { width: '90vw', margin: '1.5rem auto', padding: '1rem', minWidth: 'auto' };
   const mobileSubjectGrid = { gridTemplateColumns: '1fr' };
+  const mobileOverrides = {
+  subjectRow: {
+    justifyContent: 'space-between',
+    padding: '12px 12px',
+  },
+  switchWrapper: {
+    marginLeft: '12px'
+  }
+};
 
   const [selectedDays, setSelectedDays] = useState([]);
   const [subjectStates, setSubjectStates] = useState(() =>
@@ -358,9 +367,14 @@ export default function UpdatePreference({ userId }) {
             : styles.subjectGrid
           }>
             {filteredSubjects.map(({ name }) => (
-              <div key={name} style={styles.subjectRow}>
+              <div
+                key={name}
+                style={isMobile ? { ...styles.subjectRow, ...mobileOverrides.subjectRow } : styles.subjectRow}
+              >
                 <span style={styles.subjectName}>{name}</span>
-                <div style={styles.switchWrapper}>
+                <div
+                  style={isMobile ? { ...styles.switchWrapper, ...mobileOverrides.switchWrapper } : styles.switchWrapper}
+                >
                   <div style={styles.switchCircle(subjectStates[name])} />
                   <div
                     style={styles.switchZone}
