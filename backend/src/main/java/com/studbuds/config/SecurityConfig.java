@@ -29,9 +29,8 @@ public class SecurityConfig {
                 .antMatchers("/api/test/**").authenticated()
                 .antMatchers("/api/auth/signup", "/api/auth/login").permitAll()
                 .anyRequest().authenticated();
-                // ✅ Firebase filter is commented out for now
-                // .and()
-                // .addFilterBefore(new FirebaseAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+                .and()
+                .addFilterBefore(new FirebaseAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
