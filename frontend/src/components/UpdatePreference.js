@@ -205,12 +205,10 @@ export default function UpdatePreference({ userId }) {
   // Overrides for mobile view
   const mobileContainer = {
   width: '90vw',
-  maxWidth: '100%',
   padding: '1rem',
-  marginLeft: 'auto',
-  marginRight: 'auto',
   boxSizing: 'border-box'
-  };
+};
+
   const mobileSubjectGrid = { gridTemplateColumns: '1fr' };
   const mobileOverrides = {
   subjectRow: {
@@ -355,12 +353,7 @@ export default function UpdatePreference({ userId }) {
 };
 
   return (
-    <div
-  style={{
-    ...styles.container,
-    ...(isMobile ? mobileContainer : {})
-  }}
->
+    <div style={{ ...styles.container, ...(isMobile ? mobileContainer : {}) }}>
       <h2 style={styles.heading}>Update Preferences</h2>
       <form onSubmit={handleSubmit}>
 
