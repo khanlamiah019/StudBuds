@@ -320,13 +320,17 @@ export default function UpdatePreference({ userId }) {
     setWarning('');
   }
 
-  // Soft warnings if one of the two is missing
   if (toLearn.length === 0) {
-    setWarning("You haven’t selected any subjects to learn. You may have fewer match results.");
-  } else if (toTeach.length === 0) {
-    setWarning("You haven’t selected any subjects to teach. You may have fewer match results.");
-  } else {
-    setWarning(''); // Clear warning if both are selected
+    setWarning("Please select at least one subject to learn.");
+    return;
+  }
+  if (toTeach.length === 0) {
+    setWarning("Please select at least one subject to teach.");
+    return;
+  }
+  // Clear warning if both are selected
+  if (warning) {
+    setWarning('');
   }
 
     axios.post(`/api/user/${userId}/preference`, {
