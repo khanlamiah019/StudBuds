@@ -62,6 +62,18 @@ function App() {
     <div className="loading-screen">
       <div className="fish-tank">
         <div className="fish">🐡</div>
+        {[...Array(10)].map((_, i) => (
+          <div
+            key={i}
+            className="bubble"
+            style={{
+              width: `${Math.random() * 8 + 4}px`,
+              height: `${Math.random() * 8 + 4}px`,
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 3}s`,
+            }}
+          />
+        ))}
       </div>
       <p>Splashing in... just a sec!</p>
     </div>
