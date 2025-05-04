@@ -4,9 +4,83 @@ import { useNavigate, Link } from 'react-router-dom';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 
 const allowedMajors = [
-  "Electrical Engineering", "Mechanical Engineering", "Chemical Engineering",
-  "Civil Engineering", "General Engineering", "Computer Science"
+  "Electrical Engineering",
+  "Mechanical Engineering",
+  "Chemical Engineering",
+  "Civil Engineering",
+  "General Engineering",
+  "Computer Science"
 ];
+
+const styles = {
+  container: {
+    maxWidth: '400px',
+    margin: '3rem auto',
+    padding: '2rem',
+    borderRadius: '12px',
+    boxShadow: '0 6px 12px rgba(0,0,0,0.1)',
+    backgroundColor: '#ffffff',
+  },
+  heading: {
+    textAlign: 'center',
+    marginBottom: '1.5rem',
+    color: '#2c6e6a'
+  },
+  input: {
+    width: '100%',
+    padding: '12px',
+    margin: '0.5rem 0',
+    borderRadius: '20px',
+    border: '1px solid #ccc',
+    boxSizing: 'border-box',
+    outline: 'none',
+    fontSize: '1rem'
+  },
+  select: {
+    width: '100%',
+    padding: '12px',
+    margin: '0.5rem 0',
+    borderRadius: '20px',
+    border: '1px solid #ccc',
+    boxSizing: 'border-box',
+    outline: 'none',
+    fontSize: '1rem'
+  },
+  checkboxContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    margin: '1rem 0'
+  },
+  checkbox: {
+    marginRight: '0.5rem'
+  },
+  button: {
+    width: '100%',
+    padding: '12px',
+    marginTop: '1rem',
+    borderRadius: '20px',
+    border: 'none',
+    backgroundColor: '#5ccdc1',
+    color: '#fff',
+    fontSize: '1rem',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease'
+  },
+  buttonDisabled: {
+    backgroundColor: '#9de0da',
+    cursor: 'not-allowed'
+  },
+  message: {
+    color: 'blue',
+    textAlign: 'center',
+    marginTop: '1rem'
+  },
+  link: {
+    color: '#2c6e6a',
+    textDecoration: 'none',
+    fontWeight: 'bold'
+  }
+};
 
 export default function Signup() {
   const [formData, setFormData] = useState({
@@ -19,7 +93,8 @@ export default function Signup() {
   const auth = getAuth();
 
   const handleChange = e => {
-    const val = e.target.name === 'email' ? e.target.value.toLowerCase() : e.target.value;
+    let val = e.target.value;
+    if (e.target.name === 'email') val = val.toLowerCase();
     setFormData(fd => ({ ...fd, [e.target.name]: val }));
   };
 
@@ -69,6 +144,7 @@ export default function Signup() {
 
       navigate('/login', { replace: true });
     } catch (err) {
+      const status = err.response?.status;
       const text = err.response?.data || err.message;
       setMessage(text);
     } finally {
@@ -77,38 +153,87 @@ export default function Signup() {
   };
 
   return (
-    <div style={{ maxWidth: '420px', margin: '2rem auto', padding: '2rem', border: '1px solid #ccc', borderRadius: '8px' }}>
-      <h2 style={{ marginBottom: '1rem' }}>Sign Up</h2>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        <input name="name" value={formData.name} onChange={handleChange} placeholder="Name" required />
-        <input name="email" type="email" value={formData.email} onChange={handleChange} placeholder="Email" required />
-        <input name="password" type="password" value={formData.password} onChange={handleChange} placeholder="Password" required />
-        <select name="major" value={formData.major} onChange={handleChange} required>
+    <div style={styles.container}>
+      <h2 style={styles.heading}>Sign Up for StudBuds</h2>
+      <form onSubmit={handleSubmit}>
+        <input
+          style={styles.input}
+          name="name"
+          placeholder="Full Name"
+          value={formData.name}
+          onChange={handleChange}
+          required
+        />
+        <input
+          style={styles.input}
+          name="email"
+          type="email"
+          placeholder="Email (@cooper.edu)"
+          value={formData.email}
+          onChange={handleChange}
+          required
+        />
+        <input
+          style={styles.input}
+          name="password"
+          type="password"
+          placeholder="Password (min 9 chars)"
+          value={formData.password}
+          onChange={handleChange}
+          required
+        />
+        <select
+          style={styles.select}
+          name="major"
+          value={formData.major}
+          onChange={handleChange}
+          required
+        >
           <option value="">Select Major</option>
-          {allowedMajors.map(m => <option key={m} value={m}>{m}</option>)}
+          {allowedMajors.map(m => (
+            <option key={m} value={m}>{m}</option>
+          ))}
         </select>
-        <input name="year" type="number" value={formData.year} onChange={handleChange} placeholder="Graduation Year" required />
+        <input
+          style={styles.input}
+          name="year"
+          type="number"
+          placeholder="Year (2020–2050)"
+          value={formData.year}
+          onChange={handleChange}
+          required
+        />
 
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}>
-          <input type="checkbox" checked={agreeToShare} onChange={() => setAgreeToShare(!agreeToShare)} />
-          I agree to share my email with matches
-        </label>
+        <div style={styles.checkboxContainer}>
+          <input
+            type="checkbox"
+            id="agreeToShare"
+            checked={agreeToShare}
+            onChange={e => setAgreeToShare(e.target.checked)}
+            style={styles.checkbox}
+          />
+          <label htmlFor="agreeToShare">
+            I agree that StudBuds may share my email with all future matches
+          </label>
+        </div>
 
-        <button type="submit" disabled={isSubmitting || !agreeToShare} style={{
-          padding: '0.5rem',
-          backgroundColor: '#0056b3',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: isSubmitting || !agreeToShare ? 'not-allowed' : 'pointer'
-        }}>
-          {isSubmitting ? 'Signing up...' : 'Sign Up'}
+        <button
+          type="submit"
+          style={{
+            ...styles.button,
+            ...(isSubmitting || !agreeToShare ? styles.buttonDisabled : {})
+          }}
+          disabled={isSubmitting || !agreeToShare}
+        >
+          {isSubmitting ? 'Signing Up…' : 'Sign Up'}
         </button>
       </form>
 
-      {message && <p style={{ marginTop: '1rem', color: 'blue' }}>{message}</p>}
-      <p style={{ marginTop: '1rem', fontSize: '0.9rem' }}>
-        Already have an account? <Link to="/login">Login</Link>
+      {message && <div style={styles.message}>{message}</div>}
+
+      <p style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+        Already have an account?{' '}
+        <Link to="/login" style={styles.link}>Sign in here</Link>
       </p>
     </div>
   );
