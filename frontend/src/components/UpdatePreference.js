@@ -212,6 +212,7 @@ export default function UpdatePreference({ userId }) {
   );
   const [activeCategory, setActiveCategory] = useState('All');
   const [message, setMessage] = useState('');
+  const [warning, setWarning] = useState('');
 
   // Load existing prefs
   useEffect(() => {
@@ -256,20 +257,35 @@ export default function UpdatePreference({ userId }) {
   };
 
   const setSubjectState = (subject, state) => {
-    setSubjectStates(prev => ({ ...prev, [subject]: state }));
-  };
+  const updated = { ...subjectStates, [subject]: state };
+  const selectedCount = Object.values(updated).filter(val => val !== 'none').length;
+
+  if (selectedCount > 14) {
+    setWarning(`You have selected ${selectedCount} subjects. Limit is 14.`);
+  } else {
+    setWarning('');
+  }
+
+  setSubjectStates(updated);
+};
 
   const filteredSubjects = activeCategory === 'All'
     ? SUBJECTS_WITH_CATEGORIES
     : SUBJECTS_WITH_CATEGORIES.filter(s => s.category === activeCategory);
 
   const handleSubmit = e => {
-    e.preventDefault();
-    const toLearn = [], toTeach = [];
-    Object.entries(subjectStates).forEach(([sub, st]) => {
-      if (st === 'learn') toLearn.push(sub);
-      if (st === 'teach') toTeach.push(sub);
-    });
+  e.preventDefault();
+  const toLearn = [], toTeach = [];
+  Object.entries(subjectStates).forEach(([sub, st]) => {
+    if (st === 'learn') toLearn.push(sub);
+    if (st === 'teach') toTeach.push(sub);
+  });
+
+  const total = toLearn.length + toTeach.length;
+  if (total > 14) {
+    setWarning(`You’ve selected ${total} subjects. Please limit to 14.`);
+    return;
+  }
 
     axios.post(`/api/user/${userId}/preference`, {
       availableDays: selectedDays.join(', '),
@@ -332,6 +348,11 @@ export default function UpdatePreference({ userId }) {
           <p style={styles.filterNote}>
             Please pick no more than 14 subjects for optimum results.
           </p>
+          {warning && (
+            <p style={{ color: 'red', textAlign: 'center', marginBottom: '1rem' }}>
+              {warning}
+            </p>
+          )}
           <div style={isMobile
             ? { ...styles.subjectGrid, ...mobileSubjectGrid }
             : styles.subjectGrid
@@ -377,7 +398,9 @@ export default function UpdatePreference({ userId }) {
         </div>
       </form>
 
+      {warning && <p style={{ color: 'orange', textAlign: 'center' }}>{warning}</p>}
       {message && <p style={styles.error}>{message}</p>}
+        
     </div>
   );
 }
