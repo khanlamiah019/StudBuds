@@ -3,7 +3,7 @@ package com.studbuds.payload;
 public class SignupRequest {
     private String name;
     private String email;
-    private String password;  // still used for frontend validation
+    private String password;
     private String major;
     private String year;
     private String firebaseToken;
