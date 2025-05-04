@@ -418,10 +418,20 @@ export default function UpdatePreference({ userId }) {
           <button
             type="button"
             onClick={handleClear}
-            style={{ marginLeft: '1rem' }}
+            style={{
+              marginLeft: '1rem',
+              backgroundColor: '#b0bec5', // Soft gray-blue
+              fontWeight: 'bold',
+              padding: '0.5rem 1rem',
+              borderRadius: '4px',
+              color: '#fff',
+              border: 'none',
+              cursor: 'pointer'
+            }}
           >
             Clear Preferences
           </button>
+
         </div>
       </form>
 
