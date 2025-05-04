@@ -390,7 +390,7 @@ export default function UpdatePreference({ userId }) {
             ))}
           </div>
           <p style={styles.filterNote}>
-            Please pick no more than 14 subjects for optimum results.
+            🎯 Stay under 14 subjects to match with the best partners!
           </p>
           {warning && (
             <p style={{ color: 'red', textAlign: 'center', marginBottom: '1rem' }}>
