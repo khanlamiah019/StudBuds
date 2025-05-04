@@ -35,13 +35,14 @@ public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
     String name = req.getName();
     String firebaseToken = req.getFirebaseToken();
 
-    // 1) Basic validation
+    // 1) Basic frontend-only validations already done
     if (!email.endsWith("@cooper.edu"))
         return ResponseEntity.badRequest().body("Email must be a @cooper.edu address");
-    if (req.getPassword() == null || req.getPassword().length() < 9)
-        return ResponseEntity.badRequest().body("Password must be at least 9 characters long");
 
-    // 2) Parse Firebase token to get UID and verify
+    if (firebaseToken == null || firebaseToken.isEmpty())
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing Firebase token");
+
+    // 2) Verify Firebase token
     FirebaseToken decoded;
     try {
         decoded = firebaseAuth.verifyIdToken(firebaseToken);
@@ -53,14 +54,14 @@ public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
 
     String uid = decoded.getUid();
 
-    // 3) Ensure UID is not already in use in local DB
+    // 3) Check local DB for existing user by UID
     if (userRepository.findByFirebaseUid(uid).isPresent()) {
         return ResponseEntity
             .status(HttpStatus.CONFLICT)
             .body("Email already in use. Please log in instead.");
     }
 
-    // 4) Persist user in local DB
+    // 4) Save to local DB
     User user = new User();
     user.setName(name);
     user.setEmail(email);
@@ -85,8 +86,6 @@ public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
     resp.put("userId", user.getId());
     return ResponseEntity.status(HttpStatus.CREATED).body(resp);
 }
-
-
 
     // ─── LOGIN ────────────────────────────────────────────────────────────────
 
