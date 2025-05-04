@@ -1,10 +1,9 @@
-// src/main/java/com/studbuds/payload/SignupRequest.java
 package com.studbuds.payload;
 
 public class SignupRequest {
     private String name;
     private String email;
-    private String password;
+    private String password;  // still used for frontend validation
     private String major;
     private String year;
     private String firebaseToken;
@@ -27,4 +26,3 @@ public class SignupRequest {
     public String getFirebaseToken() { return firebaseToken; }
     public void setFirebaseToken(String firebaseToken) { this.firebaseToken = firebaseToken; }
 }
-
