@@ -300,57 +300,59 @@ export default function UpdatePreference({ userId }) {
   });
 
   const total = toLearn.length + toTeach.length;
+
+  // Hard block if nothing is selected
   if (total === 0) {
-  setWarning("You must select at least one subject to learn or teach.");
-  return;
+    setWarning("You must select at least one subject to learn or teach.");
+    return;
   }
-    
-  // ✅ Clear warning if user has now selected at least one
-  if (warning && total > 0) {
-    setWarning('');
-  }  
-    
+
+  // Hard block if over limit
   if (total > 14) {
     setWarning(`You’ve selected ${total} subjects. Please limit to 14.`);
     return;
   }
 
-  // Clear warning if they previously exceeded 14 but now corrected
+  // Clear warning if they previously exceeded limit and now corrected
   if (warning && total <= 14) {
     setWarning('');
   }
 
+  // Soft warning if only one side is selected
   if (toLearn.length === 0) {
     setWarning("You haven’t selected any subjects to learn. You may have fewer match results.");
   } else if (toTeach.length === 0) {
     setWarning("You haven’t selected any subjects to teach. You may have fewer match results.");
   } else {
-    setWarning(''); // Clear warning if both are selected
+    setWarning(''); // clear warning if both are selected
   }
 
-    axios.post(`/api/user/${userId}/preference`, {
-      availableDays: selectedDays.join(', '),
-      subjectsToLearn: toLearn.join(', '),
-      subjectsToTeach: toTeach.join(', ')
+  axios.post(`/api/user/${userId}/preference`, {
+    availableDays: selectedDays.join(', '),
+    subjectsToLearn: toLearn.join(', '),
+    subjectsToTeach: toTeach.join(', ')
+  })
+    .then(() => {
+      setMessage('Preference updated successfully.');
+      navigate('/matchlist');
     })
-      .then(() => { setMessage('Preference updated successfully.'); navigate('/matchlist'); })
-      .catch(err => {
-        const status = err.response?.status;
-        if (status === 500) {
-          setMessage('Too many preferences picked. Please select fewer subjects.');
-        } else {
-          const data = err.response?.data;
-          let msg = 'Update failed.';
-          if (data) {
-            if (typeof data === 'string') msg = data;
-            else if (data.message) msg = data.message;
-            else if (data.error) msg = data.error;
-            else msg = JSON.stringify(data);
-          }
-          setMessage(msg);
+    .catch(err => {
+      const status = err.response?.status;
+      if (status === 500) {
+        setMessage('Too many preferences picked. Please select fewer subjects.');
+      } else {
+        const data = err.response?.data;
+        let msg = 'Update failed.';
+        if (data) {
+          if (typeof data === 'string') msg = data;
+          else if (data.message) msg = data.message;
+          else if (data.error) msg = data.error;
+          else msg = JSON.stringify(data);
         }
-      });
-  };
+        setMessage(msg);
+      }
+    });
+};
 
   return (
     <div style={isMobile ? { ...styles.container, ...mobileContainer } : styles.container}>
