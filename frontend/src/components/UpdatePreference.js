@@ -416,66 +416,37 @@ export default function UpdatePreference({ userId }) {
     setSubjectState(name, nextState);
   }}
   style={{
-    position: 'relative',
-    width: isMobile ? '48px' : '60px',
-    height: isMobile ? '48px' : '60px',
-    cursor: 'pointer',
-    marginLeft: isMobile ? '8px' : '16px',
-    userSelect: 'none',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    flexShrink: 0,
-    transition: 'all 0.2s ease'
-  }}
-  title="Click to toggle: None → Learn → Teach"
->
-  {/* Bottom shell */}
-  <div style={{
-    width: '100%',
-    height: '50%',
-    background: 'radial-gradient(circle at 50% 10%, #fff8e1, #e0c7a9)',
-    borderBottomLeftRadius: '100% 100%',
-    borderBottomRightRadius: '100% 100%',
-    position: 'absolute',
-    bottom: 0,
-    zIndex: 1,
-    boxShadow: 'inset 0 -2px 4px rgba(0,0,0,0.1)'
-  }} />
-
-  {/* Top shell */}
-  <div style={{
-    width: '100%',
-    height: '50%',
-    background:
+    width: isMobile ? '100px' : '120px',
+    height: isMobile ? '34px' : '38px',
+    borderRadius: '999px',
+    backgroundColor:
       subjectStates[name] === 'learn'
-        ? 'radial-gradient(circle at 50% 90%, #aef4ff, #5ccdc1)'
+        ? '#aef4ff'
         : subjectStates[name] === 'teach'
-          ? 'radial-gradient(circle at 50% 90%, #c3fccc, #84e1a8)'
-          : 'radial-gradient(circle at 50% 90%, #fff8e1, #e0c7a9)',
-    borderTopLeftRadius: '100% 100%',
-    borderTopRightRadius: '100% 100%',
-    position: 'absolute',
-    top: 0,
-    zIndex: 2,
-    transform: subjectStates[name] === 'none' ? 'rotateX(0deg)' : 'rotateX(18deg)',
-    transformOrigin: 'bottom',
-    transition: 'transform 0.3s ease'
-  }} />
-
-  {/* Text label in center */}
-  <span style={{
-    zIndex: 3,
-    fontSize: isMobile ? '0.65rem' : '0.75rem',
+          ? '#c3fccc'
+          : '#e2e8f0',
+    boxShadow:
+      subjectStates[name] !== 'none'
+        ? '0 0 6px rgba(0,0,0,0.2)'
+        : 'inset 0 0 4px rgba(0,0,0,0.1)',
+    color: subjectStates[name] === 'none' ? '#555' : '#065f46',
     fontWeight: 600,
-    color: subjectStates[name] === 'none' ? '#444' : '#fff',
-    textShadow: subjectStates[name] !== 'none' ? '0 1px 2px rgba(0,0,0,0.3)' : 'none'
-  }}>
-    {
-      subjectStates[name] === 'learn' ? 'Learn' :
-      subjectStates[name] === 'teach' ? 'Teach' : ''
-    }
-  </span>
+    fontSize: isMobile ? '0.75rem' : '0.85rem',
+    cursor: 'pointer',
+    transition: 'all 0.25s ease',
+    marginLeft: isMobile ? '8px' : '16px',
+    userSelect: 'none'
+  }}
+  title="Click to cycle: None → Learn → Teach"
+>
+  {subjectStates[name] === 'learn'
+    ? 'Learn'
+    : subjectStates[name] === 'teach'
+      ? 'Teach'
+      : 'None'}
 </div>
 // edit the above if it doesn't look right 
             </div>
