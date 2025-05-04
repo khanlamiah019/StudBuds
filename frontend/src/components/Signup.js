@@ -124,41 +124,43 @@ export default function Signup() {
   };
 
   const handleSubmit = async e => {
-  e.preventDefault();
-  setMessage('');
-  if (!validateForm()) return;
+    e.preventDefault();
+    setMessage('');
+    if (!validateForm()) return;
 
-  setIsSubmitting(true);
+    setIsSubmitting(true);
+    try {
+      await signOut(auth); // Ensure no ghost session
 
-  try {
-    await signOut(auth); // 🧼 Important to clear any deleted or cached Firebase user
+      const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+      const token = await userCredential.user.getIdToken();
 
-    const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-    const token = await userCredential.user.getIdToken();
+      await axios.post('/api/auth/signup', {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+        major: formData.major,
+        year: formData.year,
+        firebaseToken: token
+      });
 
-    await axios.post('/api/auth/signup', {
-      name: formData.name.trim(),
-      email: formData.email.trim(),
-      password: formData.password,
-      major: formData.major,
-      year: formData.year,
-      firebaseToken: token
-    });
-
-    navigate('/login', { replace: true });
-  } catch (err) {
-    // Better error handling
-    if (err.code === 'auth/email-already-in-use') {
-      setMessage('This email is already registered. Try logging in instead.');
-    } else {
-      const text = err.response?.data || err.message || 'Something went wrong.';
-      setMessage(text);
+      navigate('/login', { replace: true });
+    } catch (err) {
+      if (err.code === 'auth/email-already-in-use') {
+        setMessage('This email is already registered. Try logging in instead.');
+      } else {
+        const text = err.response?.data || err.message || 'Something went wrong.';
+        if (typeof text === 'string' && text.includes("Email already exists")) {
+          setMessage("This email is tied to a deleted account. Please contact support.");
+        } else {
+          setMessage(text);
+        }
+      }
+    } finally {
+      setIsSubmitting(false);
     }
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-  
+  };
+
   return (
     <div style={styles.container}>
       <h2 style={styles.heading}>Sign Up for StudBuds</h2>
