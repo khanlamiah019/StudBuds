@@ -1,6 +1,8 @@
+// src/App.js
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
+import axios from './axiosSetup'; // ✅ use axios here
 import './App.css';
 
 import Landing from './components/Landing';
@@ -12,7 +14,7 @@ import Profile from './components/Profile';
 
 function App() {
   const [userId, setUserId] = useState(null);
-  const [checkingAuth, setCheckingAuth] = useState(true); // ⏳ NEW
+  const [loading, setLoading] = useState(true); // ✅ show loading state during auth check
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -22,29 +24,26 @@ function App() {
       if (user) {
         try {
           const token = await user.getIdToken();
-          const res = await fetch("/api/auth/login", {
-            method: "POST",
-            headers: {
-              "Authorization": `Bearer ${token}`,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ firebaseToken: token })
-          });
 
-          if (res.ok) {
-            const data = await res.json();
-            setUserId(data.userId);
+          const res = await axios.post('/api/auth/login', 
+            { firebaseToken: token },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+
+          if (res.data && res.data.userId) {
+            setUserId(res.data.userId);
           } else {
             setUserId(null);
           }
-        } catch (err) {
-          console.error("Login check failed", err);
+        } catch (error) {
+          console.error("Login sync failed:", error);
           setUserId(null);
         }
       } else {
         setUserId(null);
       }
-      setCheckingAuth(false); // ✅ Done checking
+
+      setLoading(false); // ✅ auth check complete
     });
 
     return () => unsubscribe();
@@ -57,6 +56,8 @@ function App() {
       setMenuOpen(false);
     });
   };
+
+  if (loading) return <div className="loading">Loading...</div>; // ✅ optional: improve UX
 
   return (
     <div>
@@ -83,18 +84,14 @@ function App() {
       )}
 
       <div className="container">
-        {checkingAuth ? (
-          <p>Loading...</p> // Or show a spinner
-        ) : (
-          <Routes>
-            <Route path="/" element={userId ? <Navigate to="/matchlist" /> : <Landing />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/login" element={<Login setUserId={setUserId} />} />
-            <Route path="/matchlist" element={userId ? <MatchList userId={userId} /> : <Navigate to="/login" />} />
-            <Route path="/update" element={userId ? <UpdatePreference userId={userId} /> : <Navigate to="/login" />} />
-            <Route path="/profile" element={userId ? <Profile userId={userId} setUserId={setUserId} /> : <Navigate to="/login" />} />
-          </Routes>
-        )}
+        <Routes>
+          <Route path="/" element={userId ? <Navigate to="/matchlist" /> : <Landing />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={<Login setUserId={setUserId} />} />
+          <Route path="/matchlist" element={userId ? <MatchList userId={userId} /> : <Navigate to="/login" />} />
+          <Route path="/update" element={userId ? <UpdatePreference userId={userId} /> : <Navigate to="/login" />} />
+          <Route path="/profile" element={userId ? <Profile userId={userId} setUserId={setUserId} /> : <Navigate to="/login" />} />
+        </Routes>
       </div>
     </div>
   );
