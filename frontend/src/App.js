@@ -57,7 +57,16 @@ function App() {
     });
   };
 
-  if (loading) return <div className="loading">Loading...</div>; // ✅ optional: improve UX
+  if (loading) {
+  return (
+    <div className="loading-screen">
+      <div className="fish-tank">
+        <div className="fish">🐠</div>
+      </div>
+      <p>Reeling you in…</p>
+    </div>
+  );
+}
 
   return (
     <div>
