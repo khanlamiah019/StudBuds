@@ -14,30 +14,38 @@ import java.util.Collections;
 
 public class FirebaseAuthenticationFilter extends OncePerRequestFilter {
 
-    @Override
-    protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain
-    ) throws ServletException, IOException {
+@Override
+protected void doFilterInternal(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        FilterChain filterChain
+) throws ServletException, IOException {
 
-        String header = request.getHeader("Authorization");
-        if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
-            try {
-                FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(token);
-                String email = decodedToken.getEmail();
-                if (email != null) {
-                    // Set authentication so downstream endpoints see a principal
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                }
-            } catch (Exception e) {
-                // Token invalid or expired
-                SecurityContextHolder.clearContext();
-            }
-        }
+    String path = request.getRequestURI();
+
+    // 🛑 Skip Firebase validation for public endpoints
+    if (path.startsWith("/api/auth/signup") || path.startsWith("/api/auth/login")) {
         filterChain.doFilter(request, response);
+        return;
     }
+
+    String header = request.getHeader("Authorization");
+    if (header != null && header.startsWith("Bearer ")) {
+        String token = header.substring(7);
+        try {
+            FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(token);
+            String email = decodedToken.getEmail();
+            if (email != null) {
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+        } catch (Exception e) {
+            SecurityContextHolder.clearContext();
+        }
+    }
+
+    filterChain.doFilter(request, response);
+}
+
 }
