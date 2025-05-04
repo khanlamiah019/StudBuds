@@ -232,7 +232,7 @@ export default function UpdatePreference({ userId }) {
 
   // Load existing prefs
   useEffect(() => {
-    axios.get(/api/user/${userId}/preference)
+    axios.get(`/api/user/${userId}/preference`)
       .then(({ data }) => {
         setSelectedDays(
           data.availableDays
@@ -255,7 +255,7 @@ export default function UpdatePreference({ userId }) {
   }, [userId]);
 
   const handleClear = () => {
-    axios.delete(/api/user/${userId}/preference)
+    axios.delete(`/api/user/${userId}/preference`)
       .then(() => {
         setSelectedDays([]);
         setSubjectStates(
@@ -278,7 +278,7 @@ export default function UpdatePreference({ userId }) {
   const selectedCount = Object.values(updated).filter(val => val !== 'none').length;
 
   if (selectedCount > 14) {
-    setWarning(You have selected ${selectedCount} subjects. Limit is 14.);
+    setWarning(`You have selected ${selectedCount} subjects. Limit is 14.`);
   } else {
     setWarning('');
   }
@@ -309,7 +309,7 @@ export default function UpdatePreference({ userId }) {
 
   // Hard block if over limit
   if (total > 14) {
-    setWarning(You’ve selected ${total} subjects. Please limit to 14.);
+    setWarning(`You’ve selected ${total} subjects. Please limit to 14.`);
     return;
   }
 
@@ -327,7 +327,7 @@ export default function UpdatePreference({ userId }) {
     setWarning(''); // clear warning if both are selected
   }
 
-  axios.post(/api/user/${userId}/preference, {
+  axios.post(`/api/user/${userId}/preference`, {
     availableDays: selectedDays.join(', '),
     subjectsToLearn: toLearn.join(', '),
     subjectsToTeach: toTeach.join(', ')
