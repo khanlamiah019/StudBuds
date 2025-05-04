@@ -146,17 +146,18 @@ public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
             User user = userOpt.get();
 
             try {
-                firebaseAuth.getUser(uid);
-                firebaseAuth.deleteUser(uid);
-                System.out.println("[✅] Firebase user deleted for UID: " + uid);
-            } catch (FirebaseAuthException e) {
-                if ("USER_NOT_FOUND".equals(e.getAuthErrorCode().name())) {
-                    System.out.println("[ℹ️] Firebase user already deleted for UID: " + uid);
-                } else {
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of("message", "Failed to delete Firebase user: " + e.getMessage()));
-                }
-            }
+    firebaseAuth.deleteUser(uid);
+    System.out.println("[✅] Firebase user deleted for UID: " + uid);
+} catch (FirebaseAuthException e) {
+    if (e.getAuthErrorCode() != null && "USER_NOT_FOUND".equals(e.getAuthErrorCode().name())) {
+        System.out.println("[ℹ️] Firebase user already deleted for UID: " + uid);
+    } else {
+        System.err.println("[🔥] Firebase deletion error: " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(Map.of("message", "Failed to delete Firebase user: " + e.getMessage()));
+    }
+}
+
 
             preferenceRepository.findByUser(user).ifPresent(pref -> {
                 preferenceRepository.delete(pref);
