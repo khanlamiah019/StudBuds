@@ -448,7 +448,6 @@ export default function UpdatePreference({ userId }) {
       ? 'Teach'
       : 'None'}
 </div>
-// edit the above if it doesn't look right 
             </div>
           ))}
       </div>
