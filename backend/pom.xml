@@ -4,22 +4,27 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
    <modelVersion>4.0.0</modelVersion>
+
    <groupId>com.studbuds</groupId>
    <artifactId>studbuds-backend</artifactId>
    <version>0.0.1-SNAPSHOT</version>
    <packaging>jar</packaging>
    <name>studbuds-backend</name>
    <description>Study Buddy Matching Backend</description>
+
    <parent>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-parent</artifactId>
       <version>2.7.8</version>
       <relativePath/>
    </parent>
+
    <properties>
       <java.version>11</java.version>
    </properties>
+
    <dependencies>
+      <!-- Spring Boot Starters -->
       <dependency>
          <groupId>org.springframework.boot</groupId>
          <artifactId>spring-boot-starter-web</artifactId>
@@ -32,22 +37,36 @@
          <groupId>org.springframework.boot</groupId>
          <artifactId>spring-boot-starter-security</artifactId>
       </dependency>
+
+      <!-- Firebase Admin -->
       <dependency>
-         <groupId>org.mockito</groupId>
-         <artifactId>mockito-junit-jupiter</artifactId>
-         <version>4.8.1</version>
-         <scope>test</scope>
+         <groupId>com.google.firebase</groupId>
+         <artifactId>firebase-admin</artifactId>
+         <version>8.1.0</version>
       </dependency>
+
+      <!-- PostgreSQL Driver -->
       <dependency>
          <groupId>org.postgresql</groupId>
          <artifactId>postgresql</artifactId>
          <scope>runtime</scope>
       </dependency>
+
+      <!-- Logging -->
+      <dependency>
+         <groupId>ch.qos.logback</groupId>
+         <artifactId>logback-classic</artifactId>
+         <version>1.4.14</version>
+      </dependency>
+
+      <!-- Optional Utilities -->
       <dependency>
          <groupId>org.projectlombok</groupId>
          <artifactId>lombok</artifactId>
          <optional>true</optional>
       </dependency>
+
+      <!-- Testing -->
       <dependency>
          <groupId>org.springframework.boot</groupId>
          <artifactId>spring-boot-starter-test</artifactId>
@@ -57,11 +76,13 @@
          <groupId>junit</groupId>
          <artifactId>junit</artifactId>
          <version>4.11</version>
+         <scope>test</scope>
       </dependency>
       <dependency>
-         <groupId>com.google.firebase</groupId>
-         <artifactId>firebase-admin</artifactId>
-         <version>8.1.0</version>
+         <groupId>org.mockito</groupId>
+         <artifactId>mockito-junit-jupiter</artifactId>
+         <version>4.8.1</version>
+         <scope>test</scope>
       </dependency>
       <dependency>
          <groupId>org.mockito</groupId>
@@ -70,6 +91,7 @@
          <scope>test</scope>
       </dependency>
    </dependencies>
+
    <build>
       <plugins>
          <plugin>
