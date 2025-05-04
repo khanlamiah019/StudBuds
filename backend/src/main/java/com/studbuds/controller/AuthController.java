@@ -135,7 +135,6 @@ public ResponseEntity<?> deleteAccount(
 ) {
     String idToken = null;
 
-    // 🔐 Extract Firebase token
     if (header != null && header.startsWith("Bearer ")) {
         idToken = header.substring(7);
     } else if (body != null && body.getFirebaseToken() != null) {
@@ -155,15 +154,15 @@ public ResponseEntity<?> deleteAccount(
     }
 
     String uid = decoded.getUid();
-
     Optional<User> userOpt = userRepository.findByFirebaseUid(uid);
     if (userOpt.isEmpty()) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found in local DB."));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(Map.of("message", "User not found in local DB."));
     }
 
     User user = userOpt.get();
 
-    // 🔥 Delete Firebase account if it still exists
+    // 🔥 Delete Firebase user
     try {
         firebaseAuth.deleteUser(uid);
         System.out.println("[✅] Firebase user deleted for UID: " + uid);
@@ -171,16 +170,15 @@ public ResponseEntity<?> deleteAccount(
         if (e.getAuthErrorCode() != null && "USER_NOT_FOUND".equals(e.getAuthErrorCode().name())) {
             System.out.println("[ℹ️] Firebase user already deleted for UID: " + uid);
         } else {
-            System.err.println("[🔥] Firebase deletion error: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("message", "Failed to delete Firebase user: " + e.getMessage()));
         }
     }
 
-    // 🧹 Delete swipes (to avoid FK constraint violations)
+    // ✅ 🧹 DELETE SWIPES HERE
     try {
-        List<Swipe> swipesByUser = swipeRepository.findBySwiper(user);
-        List<Swipe> swipesOfUser = swipeRepository.findBySwiped(user);
+        List<Swipe> swipesByUser = swipeRepository.findByFromUser(user);
+        List<Swipe> swipesOfUser = swipeRepository.findByToUser(user);
         swipeRepository.deleteAll(swipesByUser);
         swipeRepository.deleteAll(swipesOfUser);
         System.out.println("[✅] Deleted swipes for UID: " + uid);
@@ -190,31 +188,30 @@ public ResponseEntity<?> deleteAccount(
             .body(Map.of("message", "Failed to delete user swipes: " + e.getMessage()));
     }
 
-    // 🧹 Delete preferences
+    // ✅ Delete preferences
     try {
         preferenceRepository.findByUser(user).ifPresent(pref -> {
             preferenceRepository.delete(pref);
             System.out.println("[✅] Deleted preferences for UID: " + uid);
         });
     } catch (Exception e) {
-        System.err.println("[🔥] Failed to delete preferences: " + e.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(Map.of("message", "Failed to delete preferences: " + e.getMessage()));
     }
 
-    // 🧹 Delete user
+    // ✅ Delete user
     try {
         userRepository.delete(user);
         userRepository.flush();
         System.out.println("[✅] Deleted local user: " + uid);
     } catch (Exception e) {
-        System.err.println("[🔥] Failed to delete local user: " + e.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(Map.of("message", "Failed to delete local user: " + e.getMessage()));
     }
 
     return ResponseEntity.ok(Map.of("message", "Account deleted successfully."));
 }
+
 
     @GetMapping("/check-sync")
     public ResponseEntity<?> checkSync(
