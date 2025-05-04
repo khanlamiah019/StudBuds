@@ -409,28 +409,45 @@ export default function UpdatePreference({ userId }) {
       >
         <span style={styles.subjectName}>{name}</span>
         <div
-          style={isMobile ? { ...styles.switchWrapper, ...mobileOverrides.switchWrapper } : styles.switchWrapper}
-        >
-          <div style={styles.switchCircle(subjectStates[name])} />
-          <div
-            style={styles.switchZone}
-            onClick={() => setSubjectState(name, 'learn')}
-          >
-            Learn
-          </div>
-          <div
-            style={styles.switchZone}
-            onClick={() => setSubjectState(name, 'none')}
-          >
-            None
-          </div>
-          <div
-            style={styles.switchZone}
-            onClick={() => setSubjectState(name, 'teach')}
-          >
-            Teach
-                </div>
-              </div>
+  onClick={() => {
+    const nextState =
+      subjectStates[name] === 'none' ? 'learn' :
+      subjectStates[name] === 'learn' ? 'teach' : 'none';
+    setSubjectState(name, nextState);
+  }}
+  style={{
+    marginLeft: isMobile ? '12px' : undefined,
+    width: '60px',
+    height: '60px',
+    borderRadius: '50% 50% 40% 40% / 60% 60% 40% 40%',
+    background:
+      subjectStates[name] === 'learn'
+        ? 'radial-gradient(circle at 30% 30%, #aef4ff, #5ccdc1)'
+        : subjectStates[name] === 'teach'
+          ? 'radial-gradient(circle at 30% 30%, #c3fccc, #84e1a8)'
+          : 'radial-gradient(circle at 30% 30%, #fdf6e3, #e0d8c3)',
+    boxShadow:
+      subjectStates[name] === 'none'
+        ? 'inset 0 0 4px rgba(0,0,0,0.1)'
+        : '0 0 8px rgba(0,0,0,0.2)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    fontSize: '0.75rem',
+    fontWeight: 'bold',
+    color: subjectStates[name] === 'none' ? '#555' : '#fff',
+    transition: 'all 0.3s ease',
+    userSelect: 'none'
+  }}
+  title="Click to toggle: None → Learn → Teach"
+>
+  {
+    subjectStates[name] === 'learn' ? 'Learn' :
+    subjectStates[name] === 'teach' ? 'Teach' :
+    'None'
+  }
+</div>
             </div>
           ))}
       </div>
