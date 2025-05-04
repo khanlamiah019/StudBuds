@@ -61,7 +61,6 @@ public class AuthController {
                 .body("This email is already tied to a local account. If you deleted your account recently, try again in a few moments.");
         }
 
-        // Create new user
         User user = new User();
         user.setName(name);
         user.setEmail(email);
@@ -149,29 +148,26 @@ public class AuthController {
 
             User user = userOpt.get();
 
-            // Delete Firebase user
             try {
-                firebaseAuth.getUser(uid); // Will throw if user doesn't exist
+                firebaseAuth.getUser(uid);
                 firebaseAuth.deleteUser(uid);
                 System.out.println("[✅] Firebase user deleted for UID: " + uid);
             } catch (FirebaseAuthException e) {
                 if ("USER_NOT_FOUND".equals(e.getAuthErrorCode().name())) {
                     System.out.println("[ℹ️] Firebase user already deleted for UID: " + uid);
                 } else {
-                    System.out.println("[❌] Firebase deletion failed: " + e.getMessage());
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(Map.of("message", "Failed to delete Firebase user: " + e.getMessage()));
                 }
             }
 
-            // Delete local preference and user
             preferenceRepository.findByUser(user).ifPresent(pref -> {
                 preferenceRepository.delete(pref);
                 System.out.println("[✅] Deleted preference for UID: " + uid);
             });
 
             userRepository.delete(user);
-            userRepository.flush(); // ✅ Ensures delete is committed to DB
+            userRepository.flush(); // Ensure DB deletion
             System.out.println("[✅] Deleted user from local DB: " + uid);
 
             return ResponseEntity.ok(Map.of("message", "Account deleted successfully."));
@@ -181,10 +177,6 @@ public class AuthController {
                 .body(Map.of("message", "Invalid Firebase token: " + e.getMessage()));
         }
     }
-
-}
-
-    // ─── DEBUG: Check if Firebase token matches local DB ──────────────────────
 
     @GetMapping("/check-sync")
     public ResponseEntity<?> checkSync(
@@ -213,8 +205,6 @@ public class AuthController {
                 .body(Map.of("message", "Invalid Firebase token", "details", e.getMessage()));
         }
     }
-
-    // ─── DEBUG: Force delete local DB entry by email ─────────────────────────
 
     @DeleteMapping("/force-delete-local")
     public ResponseEntity<?> forceDeleteLocalOnly(@RequestParam String email) {
