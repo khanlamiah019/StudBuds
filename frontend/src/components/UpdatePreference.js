@@ -410,6 +410,7 @@ export default function UpdatePreference({ userId }) {
     </div>
 
         </fieldset>
+      </div>
 
         <div style={styles.buttonContainer}>
           <button type="submit">Update Preferences</button>
