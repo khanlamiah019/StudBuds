@@ -57,27 +57,28 @@ public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
     // 🧹 Cleanup if email is already in DB (from deleted or broken account)
     Optional<User> existingUser = userRepository.findByEmailIgnoreCase(email);
     existingUser.ifPresent(user -> {
-        try {
-            // 💥 DELETE swipes before deleting user to avoid FK violation
-            List<Swipe> swipesByUser = swipeRepository.findByFromUser(user);
-            List<Swipe> swipesOfUser = swipeRepository.findByToUser(user);
-            swipeRepository.deleteAll(swipesByUser);
-            swipeRepository.deleteAll(swipesOfUser);
-            System.out.println("[✅] Deleted swipes for existing user: " + email);
+    try {
+        // 💥 DELETE swipes first (both directions)
+        List<Swipe> swipesByUser = swipeRepository.findByFromUser(user);
+        List<Swipe> swipesOfUser = swipeRepository.findByToUser(user);
+        swipeRepository.deleteAll(swipesByUser);
+        swipeRepository.deleteAll(swipesOfUser);
+        System.out.println("[✅] Deleted swipes for existing user: " + email);
 
-            // 🧹 Delete preferences
-            preferenceRepository.findByUser(user).ifPresent(preferenceRepository::delete);
+        // ✅ Delete preferences
+        preferenceRepository.findByUser(user).ifPresent(preferenceRepository::delete);
 
-            // 🧹 Delete user
-            userRepository.delete(user);
-            userRepository.flush();
-            System.out.println("[🧹] Cleaned up old local record for email: " + email);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("[🔥] Failed to clean up old user: " + e.getMessage());
-            throw new RuntimeException("Failed to clean up existing user with this email.");
-        }
-    });
+        // ✅ Now delete user
+        userRepository.delete(user);
+        userRepository.flush();
+        System.out.println("[🧹] Cleaned up old local record for email: " + email);
+    } catch (Exception e) {
+        e.printStackTrace();
+        System.err.println("[🔥] Failed to clean up old user: " + e.getMessage());
+        throw new RuntimeException("Failed to clean up existing user with this email.");
+    }
+});
+
 
     // ✅ Create new user
     User user = new User();
