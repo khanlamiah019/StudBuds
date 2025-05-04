@@ -26,65 +26,62 @@ public class AuthController {
     @Autowired private FirebaseAuth firebaseAuth;
 
     @PostMapping("/signup")
-    public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
-        String email = req.getEmail().trim().toLowerCase();
-        String name = req.getName();
-        String firebaseToken = req.getFirebaseToken();
+public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
+    String email = req.getEmail().trim().toLowerCase();
+    String name = req.getName();
+    String firebaseToken = req.getFirebaseToken();
 
-        if (!email.endsWith("@cooper.edu"))
-            return ResponseEntity.badRequest().body("Email must be a @cooper.edu address");
-        if (req.getPassword() == null || req.getPassword().length() < 9)
-            return ResponseEntity.badRequest().body("Password must be at least 9 characters long");
+    if (!email.endsWith("@cooper.edu"))
+        return ResponseEntity.badRequest().body("Email must be a @cooper.edu address");
+    if (req.getPassword() == null || req.getPassword().length() < 9)
+        return ResponseEntity.badRequest().body("Password must be at least 9 characters long");
 
-        FirebaseToken decoded;
-        try {
-            decoded = firebaseAuth.verifyIdToken(firebaseToken);
-        } catch (FirebaseAuthException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Firebase token: " + e.getMessage());
-        }
-
-        String uid = decoded.getUid();
-
-        // Debug logging
-        System.out.println("[DEBUG] Checking UID/email existence during signup...");
-        if (userRepository.findByFirebaseUid(uid).isPresent()) {
-    return ResponseEntity.status(HttpStatus.CONFLICT)
-        .body("This Firebase account is already registered. Try logging in instead.");
-}
-
-Optional<User> existingUser = userRepository.findByEmailIgnoreCase(email);
-if (existingUser.isPresent()) {
-    // 💥 Always allow signup to recover the email, regardless of UID mismatch
-    System.out.println("[⚠️] Existing user found by email. Cleaning up local record...");
-    preferenceRepository.findByUser(existingUser.get()).ifPresent(preferenceRepository::delete);
-    userRepository.delete(existingUser.get());
-    userRepository.flush();
-}
-
-        User user = new User();
-        user.setName(name);
-        user.setEmail(email);
-        user.setFirebaseUid(uid);
-        user.setCreatedAt(LocalDateTime.now());
-        user.setMajor(req.getMajor());
-        user.setYear(req.getYear());
-        userRepository.save(user);
-
-        Preference pref = new Preference();
-        pref.setUser(user);
-        pref.setAvailableDays("");
-        pref.setSubjectsToLearn("");
-        pref.setSubjectsToTeach("");
-        preferenceRepository.save(pref);
-
-        user.setPreference(pref);
-        userRepository.save(user);
-
-        Map<String, Object> resp = new HashMap<>();
-        resp.put("message", "User registered successfully.");
-        resp.put("userId", user.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(resp);
+    FirebaseToken decoded;
+    try {
+        decoded = firebaseAuth.verifyIdToken(firebaseToken);
+    } catch (FirebaseAuthException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Firebase token: " + e.getMessage());
     }
+
+    String uid = decoded.getUid();
+
+    // 🔒 Reject if UID is already registered
+    if (userRepository.findByFirebaseUid(uid).isPresent()) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body("This Firebase account is already registered. Try logging in instead.");
+    }
+
+    // 🧹 Cleanup if email is already in DB (from deleted account)
+    Optional<User> existingUser = userRepository.findByEmailIgnoreCase(email);
+    if (existingUser.isPresent()) {
+        System.out.println("[⚠️] Existing user found by email. Cleaning up local record...");
+        preferenceRepository.findByUser(existingUser.get()).ifPresent(preferenceRepository::delete);
+        userRepository.delete(existingUser.get());
+        userRepository.flush();  // 💥 critical!
+    }
+
+    // ✅ Create new user
+    User user = new User();
+    user.setName(name);
+    user.setEmail(email);
+    user.setFirebaseUid(uid);
+    user.setCreatedAt(LocalDateTime.now());
+    user.setMajor(req.getMajor());
+    user.setYear(req.getYear());
+    userRepository.save(user); // Only save once
+
+    Preference pref = new Preference();
+    pref.setUser(user);
+    pref.setAvailableDays("");
+    pref.setSubjectsToLearn("");
+    pref.setSubjectsToTeach("");
+    preferenceRepository.save(pref);
+
+    Map<String, Object> resp = new HashMap<>();
+    resp.put("message", "User registered successfully.");
+    resp.put("userId", user.getId());
+    return ResponseEntity.status(HttpStatus.CREATED).body(resp);
+}
 
     @PostMapping("/login")
     public ResponseEntity<?> login(
