@@ -10,6 +10,8 @@ import com.studbuds.payload.LoginRequest;
 import com.studbuds.payload.SignupRequest;
 import com.studbuds.repository.PreferenceRepository;
 import com.studbuds.repository.UserRepository;
+import com.studbuds.model.Swipe;
+import com.studbuds.repository.SwipeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
