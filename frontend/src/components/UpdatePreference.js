@@ -443,7 +443,20 @@ export default function UpdatePreference({ userId }) {
       </div>
 
         <div style={styles.buttonContainer}>
-          <button type="submit">Update Preferences</button>
+          <button
+            type="submit"
+            style={{
+              backgroundColor: '#5ccdc1',
+              fontWeight: 'bold',
+              padding: '0.5rem 1rem',
+              borderRadius: '4px',
+              color: '#fff',
+              border: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            Update Preferences
+          </button>
           <button
             type="button"
             onClick={handleClear}
