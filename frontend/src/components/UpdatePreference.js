@@ -203,7 +203,14 @@ export default function UpdatePreference({ userId }) {
   }, []);
 
   // Overrides for mobile view
-  const mobileContainer = { width: '90vw', margin: '1.5rem auto', padding: '1rem', minWidth: 'auto' };
+  const mobileContainer = {
+  width: '90vw',
+  maxWidth: '100%',
+  padding: '1rem',
+  marginLeft: 'auto',
+  marginRight: 'auto',
+  boxSizing: 'border-box'
+  };
   const mobileSubjectGrid = { gridTemplateColumns: '1fr' };
   const mobileOverrides = {
   subjectRow: {
