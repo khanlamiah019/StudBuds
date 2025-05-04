@@ -4,7 +4,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import com.google.firebase.auth.UserRecord;
-import com.google.firebase.auth.UserRecord.CreateRequest;
 import com.studbuds.model.Preference;
 import com.studbuds.model.User;
 import com.studbuds.payload.DeleteAccountRequest;
@@ -27,67 +26,58 @@ public class AuthController {
     @Autowired private PreferenceRepository preferenceRepository;
     @Autowired private FirebaseAuth firebaseAuth;
 
-    // ─── SIGNUP ───────────────────────────────────────────────────────────────
+    @PostMapping("/signup")
+    public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
+        String email = req.getEmail().trim().toLowerCase();
+        String name = req.getName();
+        String firebaseToken = req.getFirebaseToken();
 
-@PostMapping("/signup")
-public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
-    String email = req.getEmail().trim().toLowerCase();
-    String name = req.getName();
-    String firebaseToken = req.getFirebaseToken();
+        // Basic validation
+        if (!email.endsWith("@cooper.edu"))
+            return ResponseEntity.badRequest().body("Email must be a @cooper.edu address");
+        if (req.getPassword() == null || req.getPassword().length() < 9)
+            return ResponseEntity.badRequest().body("Password must be at least 9 characters long");
 
-    // 1) Basic frontend-only validations already done
-    if (!email.endsWith("@cooper.edu"))
-        return ResponseEntity.badRequest().body("Email must be a @cooper.edu address");
+        // Verify Firebase token and extract UID
+        FirebaseToken decoded;
+        try {
+            decoded = firebaseAuth.verifyIdToken(firebaseToken);
+        } catch (FirebaseAuthException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Firebase token: " + e.getMessage());
+        }
 
-    if (firebaseToken == null || firebaseToken.isEmpty())
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing Firebase token");
+        String uid = decoded.getUid();
 
-    // 2) Verify Firebase token
-    FirebaseToken decoded;
-    try {
-        decoded = firebaseAuth.verifyIdToken(firebaseToken);
-    } catch (FirebaseAuthException e) {
-        return ResponseEntity
-            .status(HttpStatus.UNAUTHORIZED)
-            .body("Invalid Firebase token: " + e.getMessage());
+        // Check if user already exists locally
+        if (userRepository.findByFirebaseUid(uid).isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already in use. Please log in instead.");
+        }
+
+        // Create local user
+        User user = new User();
+        user.setName(name);
+        user.setEmail(email);
+        user.setFirebaseUid(uid);
+        user.setCreatedAt(LocalDateTime.now());
+        user.setMajor(req.getMajor());
+        user.setYear(req.getYear());
+        userRepository.save(user);
+
+        Preference pref = new Preference();
+        pref.setUser(user);
+        pref.setAvailableDays("");
+        pref.setSubjectsToLearn("");
+        pref.setSubjectsToTeach("");
+        preferenceRepository.save(pref);
+
+        user.setPreference(pref);
+        userRepository.save(user);
+
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("message", "User registered successfully.");
+        resp.put("userId", user.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(resp);
     }
-
-    String uid = decoded.getUid();
-
-    // 3) Check local DB for existing user by UID
-    if (userRepository.findByFirebaseUid(uid).isPresent()) {
-        return ResponseEntity
-            .status(HttpStatus.CONFLICT)
-            .body("Email already in use. Please log in instead.");
-    }
-
-    // 4) Save to local DB
-    User user = new User();
-    user.setName(name);
-    user.setEmail(email);
-    user.setFirebaseUid(uid);
-    user.setCreatedAt(LocalDateTime.now());
-    user.setMajor(req.getMajor());
-    user.setYear(req.getYear());
-    userRepository.save(user);
-
-    Preference pref = new Preference();
-    pref.setUser(user);
-    pref.setAvailableDays("");
-    pref.setSubjectsToLearn("");
-    pref.setSubjectsToTeach("");
-    preferenceRepository.save(pref);
-
-    user.setPreference(pref);
-    userRepository.save(user);
-
-    Map<String,Object> resp = new HashMap<>();
-    resp.put("message", "User registered successfully.");
-    resp.put("userId", user.getId());
-    return ResponseEntity.status(HttpStatus.CREATED).body(resp);
-}
-
-    // ─── LOGIN ────────────────────────────────────────────────────────────────
 
     @PostMapping("/login")
     public ResponseEntity<?> login(
@@ -111,29 +101,7 @@ public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
 
             Optional<User> userOpt = userRepository.findByFirebaseUid(uid);
             if (userOpt.isEmpty()) {
-                // Try to auto-create user in local DB if exists in Firebase
-                UserRecord record = firebaseAuth.getUser(uid);
-                if (record == null) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No local account found. Please sign up first.");
-                }
-
-                User user = new User();
-                user.setName(record.getDisplayName());
-                user.setEmail(record.getEmail());
-                user.setFirebaseUid(uid);
-                user.setCreatedAt(LocalDateTime.now());
-                userRepository.save(user);
-
-                Preference pref = new Preference();
-                pref.setUser(user);
-                preferenceRepository.save(pref);
-                user.setPreference(pref);
-                userRepository.save(user);
-
-                Map<String, Object> resp = new HashMap<>();
-                resp.put("message", "Auto-created account from Firebase.");
-                resp.put("userId", user.getId());
-                return ResponseEntity.ok(resp);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No local account found. Please sign up first.");
             }
 
             Map<String, Object> resp = new HashMap<>();
@@ -146,8 +114,6 @@ public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
         }
     }
 
-    // ─── DELETE ACCOUNT ──────────────────────────────────────────────────────
-
     @PostMapping("/delete")
     public ResponseEntity<?> deleteAccount(
         @RequestBody(required = false) DeleteAccountRequest body,
@@ -159,6 +125,7 @@ public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
         } else if (body != null && body.getFirebaseToken() != null) {
             idToken = body.getFirebaseToken();
         }
+
         if (idToken == null) {
             return ResponseEntity.badRequest().body(Map.of("message", "Missing Firebase token"));
         }
@@ -171,14 +138,15 @@ public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
             if (userOpt.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found."));
             }
+
             User user = userOpt.get();
 
-            // Attempt Firebase deletion
             try {
                 firebaseAuth.deleteUser(uid);
             } catch (FirebaseAuthException e) {
                 if (!e.getAuthErrorCode().name().equals("USER_NOT_FOUND")) {
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Firebase error: " + e.getMessage()));
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("message", "Firebase error: " + e.getMessage()));
                 }
             }
 
