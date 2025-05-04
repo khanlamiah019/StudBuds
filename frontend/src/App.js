@@ -61,9 +61,9 @@ function App() {
   return (
     <div className="loading-screen">
       <div className="fish-tank">
-        <div className="fish">🐠</div>
+        <div className="fish">🐡</div>
       </div>
-      <p>Reeling you in…</p>
+      <p>Splashing in... just a sec!</p>
     </div>
   );
 }
