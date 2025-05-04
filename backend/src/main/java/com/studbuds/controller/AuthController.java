@@ -48,27 +48,36 @@ public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
 
     String uid = decoded.getUid();
 
-    // 🔒 Check for existing UID first
+    // 🔒 Reject if UID is already registered
     if (userRepository.findByFirebaseUid(uid).isPresent()) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
             .body("This Firebase account is already registered. Try logging in instead.");
     }
 
-    // 🧹 Check if this email was used by another (deleted) Firebase account
+    // 🧹 Cleanup if email is already in DB (from deleted or broken account)
     Optional<User> existingUser = userRepository.findByEmailIgnoreCase(email);
-    if (existingUser.isPresent()) {
-        User user = existingUser.get();
+    existingUser.ifPresent(user -> {
         try {
-            System.out.println("[⚠️] Existing user found by email. Cleaning up local record...");
+            // 💥 DELETE swipes before deleting user to avoid FK violation
+            List<Swipe> swipesByUser = swipeRepository.findByFromUser(user);
+            List<Swipe> swipesOfUser = swipeRepository.findByToUser(user);
+            swipeRepository.deleteAll(swipesByUser);
+            swipeRepository.deleteAll(swipesOfUser);
+            System.out.println("[✅] Deleted swipes for existing user: " + email);
+
+            // 🧹 Delete preferences
             preferenceRepository.findByUser(user).ifPresent(preferenceRepository::delete);
+
+            // 🧹 Delete user
             userRepository.delete(user);
             userRepository.flush();
+            System.out.println("[🧹] Cleaned up old local record for email: " + email);
         } catch (Exception e) {
+            e.printStackTrace();
             System.err.println("[🔥] Failed to clean up old user: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Failed to clean up old account. Please try again.");
+            throw new RuntimeException("Failed to clean up existing user with this email.");
         }
-    }
+    });
 
     // ✅ Create new user
     User user = new User();
@@ -78,7 +87,7 @@ public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
     user.setCreatedAt(LocalDateTime.now());
     user.setMajor(req.getMajor());
     user.setYear(req.getYear());
-    userRepository.save(user); // Only save once
+    userRepository.save(user);
 
     Preference pref = new Preference();
     pref.setUser(user);
