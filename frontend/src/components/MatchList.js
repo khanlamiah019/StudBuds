@@ -199,12 +199,14 @@ const getEngineerEmoji = (user) => {
           <p style={{
   textAlign: 'center',
   color: '#ffffff',
-  fontSize: '1.2rem',
+  fontSize: '1rem',
   fontWeight: 'bold',
-  textShadow: '0 1px 3px rgba(0,0,0,0.6)'
+  textShadow: '0 1px 3px rgba(0,0,0,0.6)',
+  marginTop: '2rem'
 }}>
-  {Array.isArray(matches) ? "No matches available." : matches}
+  You've swiped the whole school—more might swim by later! 🐟📚
 </p>
+
         )}
       </div>
       {bottomMessage && (
