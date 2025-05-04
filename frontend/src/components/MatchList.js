@@ -1,221 +1,499 @@
 import React, { useState, useEffect } from 'react';
-import TinderCard from 'react-tinder-card';
 import axios from '../axiosSetup';
 import { useNavigate } from 'react-router-dom';
 
-function MatchList({ userId }) {
-  const [matches, setMatches] = useState([]);
-  const [error, setError] = useState('');
-  const [bottomMessage, setBottomMessage] = useState('');
-  const navigate = useNavigate();
+/** CONSTANTS */
+const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const MOBILE_BREAKPOINT = 600; // px
 
-// Mapping of majors to cute animal emojis.
-const cuteAnimalEmojiMap = {
-  "electrical engineering": "🐭",
-  "mechanical engineering": "🐱",
-  "civil engineering": "🐶",
-  "chemical engineering": "🐹",
-  "general engineering": "🐻",
-  "computer science": "🦊"
-};
+const SUBJECTS_WITH_CATEGORIES = [
+  // Math
+  { name: "Calculus", category: "Math" },
+  { name: "Differential Equations", category: "Math" },
+  { name: "Linear Algebra", category: "Math" },
+  { name: "Probability", category: "Math" },
+  { name: "Discrete Math", category: "Math" },
 
-// Returns a cute animal emoji based on the user's major.
-const getEngineerEmoji = (user) => {
-  if (user.major) {
-    const normalizedMajor = user.major.trim().toLowerCase();
-    return cuteAnimalEmojiMap[normalizedMajor] || "🐱"; // default emoji
-  }
-  return "🐱";
-};
+  // Chemical
+  { name: "General Chemistry", category: "Chemical" },
+  { name: "Organic Chemistry", category: "Chemical" },
+  { name: "Biochemistry", category: "Chemical" },
 
+  // Electrical
+  { name: "Circuits", category: "Electrical" },
+  { name: "Electronics", category: "Electrical" },
+  { name: "Digital Logic Design", category: "Electrical" },
+  { name: "Computer Architecture", category: "Electrical" },
 
-  // Fetch matches from backend and ensure we have an array.
-  const fetchMatches = () => {
-    axios.get(`/api/matches/find/${userId}`)
-      .then(response => {
-        if (Array.isArray(response.data)) {
-          setMatches(response.data);
-          setError('');
-        } else {
-          setMatches([]);
-          setError(response.data);
-        }
-      })
-      .catch(err => {
-        setError(err.response?.data || 'Error fetching matches');
-        setMatches([]);
-      });
-  };
+  // Computer Science
+  { name: "Computer Science 101", category: "Computer Science" },
+  { name: "Data Structures and Algorithms", category: "Computer Science" },
+  { name: "Operating Systems", category: "Computer Science" },
+  { name: "Computer Networks", category: "Computer Science" },
+  { name: "Software Engineering", category: "Computer Science" },
 
-  useEffect(() => {
-    if (userId) fetchMatches();
-  }, [userId]);
+  // Civil
+  { name: "Concrete Structures", category: "Civil" },
+  { name: "Steel Structures", category: "Civil" },
+  { name: "Transportation Engineering", category: "Civil" },
+  { name: "Environmental Engineering", category: "Civil" },
 
-  // Get username from user.
-  const getUsername = (user) => {
-    return user.name && user.name.trim() !== "" ? user.name : user.email.split('@')[0];
-  };
+  // Mechanical
+  { name: "Thermodynamics", category: "Mechanical" },
+  { name: "Fluid Mechanics", category: "Mechanical" },
+  { name: "Heat Transfer", category: "Mechanical" },
+  { name: "Mechanical Design", category: "Mechanical" },
+  { name: "Manufacturing Processes", category: "Mechanical" },
 
-  // onSwipe callback.
-  const onSwipe = (direction, matchUserId) => {
-    if (direction === 'right') {
-      axios.post(`/api/matches/swipe?user1Id=${userId}&user2Id=${matchUserId}`)
-        .then(response => {
-          // Always remove the card.
-          setMatches(prev => Array.isArray(prev) ? prev.filter(match => match.user.id !== matchUserId) : prev);
-          // If a message is returned, update bottomMessage; otherwise clear it.
-          if (response.data && response.data.message) {
-            setBottomMessage(response.data.message);
-          } else {
-            setBottomMessage('');
-          }
-        })
-        .catch(err => {
-          // Always remove the card even in error case.
-          setMatches(prev => Array.isArray(prev) ? prev.filter(match => match.user.id !== matchUserId) : prev);
-          setBottomMessage(err.response?.data || 'Error processing swipe.');
-        });
-    } else if (direction === 'left') {
-      // For a left swipe, remove the card and clear any message.
-      setMatches(prev => Array.isArray(prev) ? prev.filter(match => match.user.id !== matchUserId) : prev);
-      setBottomMessage('');
-    }
-  };
-    const onCardLeftScreen = (matchUserId) => {
-    console.log(`Card for user ${matchUserId} left the screen`);
-  };
+  // Physics
+  { name: "Classical Mechanics", category: "Physics" },
+  { name: "Electromagnetism", category: "Physics" },
+  { name: "Quantum Mechanics", category: "Physics" },
+  { name: "Optics", category: "Physics" }
+];
 
-  // Styling for overall page and container.
-  const pageStyle = {
-    minHeight: '100vh',
-    paddingTop: '2rem',
-    textAlign: 'center'
-  };
+const CATEGORIES = [
+  "All", "Civil", "Chemical", "Electrical", "Mechanical",
+  "Computer Science", "Math", "Physics"
+];
 
-  const headerStyle = {
-    textAlign: 'center',
-    marginBottom: '1rem',
-    color: '#ffffff'
-  };
+// In UpdatePreference.js, replace your existing styles object with this:
 
-  const cardContainerStyle = {
-    position: 'relative',
-    width: '320px',
-    height: '500px',
-    margin: '0 auto'
-  };
-
-  const cardStyle = {
-    position: 'absolute',
+const styles = {
+  container: {
+    maxWidth: '700px',
+    margin: '2rem auto',
+    padding: '2rem',
     backgroundColor: '#ffffff',
-    width: '320px',
-    height: '500px',
-    boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+    boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
     borderRadius: '16px',
+    fontFamily: 'Arial, sans-serif',
+    color: '#2c6e6a'
+  },
+  heading: {
+    textAlign: 'center',
+    marginBottom: '2rem'
+  },
+  fieldset: {
+    marginBottom: '2rem',
+    padding: '1rem',
+    border: '1px solid #ccc',
+    borderRadius: '6px',
     display: 'flex',
     flexDirection: 'column',
-    overflow: 'hidden'
-  };
-
-  const imageContainerStyle = {
-    flex: '1 1 auto',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: '1rem'
-  };
-
-  const textContainerStyle = {
-    marginTop: 'auto',
-    textAlign: 'left',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    padding: '1rem',
-    color: '#ffffff'
-  };
-
-  const usernameStyle = {
-    fontSize: '1.8rem',
-    fontWeight: '600',
-    marginBottom: '0.5rem',
-    color: '#ffffff',
-    letterSpacing: '1px',
-    textShadow: '0px 1px 3px rgba(0,0,0,0.3)',
+    textAlign: 'left'
+  },
+  legend: {
+    fontWeight: 'bold',
+    marginBottom: '1rem',
     textAlign: 'center'
-  };
-
-  const emojiStyle = {
-    fontSize: '6rem'
-  };
-
-  const buttonStyle = {
-    padding: '0.75rem 1.5rem',
-    fontSize: '1rem',
-    backgroundColor: '#5ccdc1',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '25px',
+  },
+  dayPill: selected => ({
+    padding: '10px 16px',
+    borderRadius: '20px',
+    backgroundColor: selected ? '#5ccdc1' : '#f5f5f5',
+    border: '1px solid #ccc',
+    color: selected ? '#fff' : '#333',
     cursor: 'pointer',
-    marginTop: '0.5rem',
-    marginRight: '0.5rem'
+    userSelect: 'none'
+  }),
+  dayPillContainer: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: '12px',
+    margin: '0 0 1.75rem 0'
+  },
+  filterBar: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: '10px',
+    marginBottom: '1rem'
+  },
+  filterButton: isActive => ({
+    border: '1px solid #ccc',
+    borderRadius: '8px',
+    padding: '6px 12px',
+    backgroundColor: isActive ? '#5ccdc1' : '#f5f5f5',
+    color: isActive ? '#fff' : '#333',
+    cursor: 'pointer',
+    fontWeight: 'bold'
+  }),
+  filterNote: {
+    textAlign: 'center',
+    fontSize: '0.85rem',
+    marginBottom: '1rem'
+  },
+  subjectGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+    gap: '1rem',
+    position: 'relative'
+  },
+  subjectRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '8px 16px',
+    borderBottom: '1px solid #eee',
+    position: 'relative'
+  },
+  subjectName: {
+    flex: 1,
+    fontSize: '0.95rem'
+  },
+  switchWrapper: {
+    width: '180px',
+    height: '36px',
+    borderRadius: '18px',
+    backgroundColor: '#e5e7eb',
+    position: 'relative',
+    display: 'flex',
+    overflow: 'hidden',
+    boxShadow: 'inset 0 0 5px rgba(0,0,0,0.1)'
+  },
+  switchZone: {
+    flex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '0.85rem',
+    fontWeight: 500,
+    cursor: 'pointer',
+    zIndex: 2
+  },
+  switchCircle: state => ({
+    position: 'absolute',
+    height: '28px',
+    width: '60px',
+    borderRadius: '14px',
+    backgroundColor:
+      state === 'learn' ? '#7dd3fc' :
+        state === 'teach' ? '#38bdf8' :
+          '#cbd5e1',
+    top: '4px',
+    left:
+      state === 'learn' ? '4px' :
+        state === 'teach' ? '116px' :
+          '60px',
+    transition: 'left 0.25s ease, background-color 0.25s ease',
+    zIndex: 1
+  }),
+  buttonContainer: {
+    textAlign: 'center',
+    marginTop: '2rem'
+  },
+  error: {
+    color: 'blue',
+    textAlign: 'center',
+    marginTop: '1rem'
+  }
+};
+
+export default function UpdatePreference({ userId }) {
+  const navigate = useNavigate();
+  // Responsive state
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= MOBILE_BREAKPOINT);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= MOBILE_BREAKPOINT);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Overrides for mobile view
+  const mobileContainer = {
+  width: '90vw',
+  maxWidth: '100%',
+  padding: '1rem',
+  marginLeft: 'auto',
+  marginRight: 'auto',
+  boxSizing: 'border-box'
   };
+  const mobileSubjectGrid = { gridTemplateColumns: '1fr' };
+  const mobileOverrides = {
+  subjectRow: {
+    justifyContent: 'space-between',
+    padding: '12px 12px',
+  },
+  switchWrapper: {
+    marginLeft: '12px'
+  }
+};
+
+  const [selectedDays, setSelectedDays] = useState([]);
+  const [subjectStates, setSubjectStates] = useState(() =>
+    SUBJECTS_WITH_CATEGORIES.reduce((acc, sub) => ({ ...acc, [sub.name]: 'none' }), {})
+  );
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [message, setMessage] = useState('');
+  const [warning, setWarning] = useState('');
+
+  // Load existing prefs
+  useEffect(() => {
+    axios.get(/api/user/${userId}/preference)
+      .then(({ data }) => {
+        setSelectedDays(
+          data.availableDays
+            ? data.availableDays.split(',').map(d => d.trim())
+            : []
+        );
+        const learn = data.subjectsToLearn?.split(',').map(s => s.trim()) || [];
+        const teach = data.subjectsToTeach?.split(',').map(s => s.trim()) || [];
+        setSubjectStates(prev => {
+          const updated = { ...prev };
+          Object.keys(updated).forEach(sub => {
+            updated[sub] = learn.includes(sub) ? 'learn'
+              : teach.includes(sub) ? 'teach'
+                : 'none';
+          });
+          return updated;
+        });
+      })
+      .catch(() => setMessage('Failed to load existing preferences.'));
+  }, [userId]);
+
+  const handleClear = () => {
+    axios.delete(/api/user/${userId}/preference)
+      .then(() => {
+        setSelectedDays([]);
+        setSubjectStates(
+          SUBJECTS_WITH_CATEGORIES.reduce((acc, sub) => ({ ...acc, [sub.name]: 'none' }), {})
+        );
+        setMessage('Preferences cleared.');
+        setTimeout(() => setMessage(''), 3000); // Clear message after 3 seconds
+      })
+      .catch(() => setMessage('Failed to clear preferences.'));
+  };
+
+  const handleDayClick = day => {
+    setSelectedDays(prev =>
+      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+    );
+  };
+
+  const setSubjectState = (subject, state) => {
+  const updated = { ...subjectStates, [subject]: state };
+  const selectedCount = Object.values(updated).filter(val => val !== 'none').length;
+
+  if (selectedCount > 14) {
+    setWarning(You have selected ${selectedCount} subjects. Limit is 14.);
+  } else {
+    setWarning('');
+  }
+
+  setSubjectStates(updated);
+};
+
+  const filteredSubjects = activeCategory === 'All'
+    ? SUBJECTS_WITH_CATEGORIES
+    : SUBJECTS_WITH_CATEGORIES.filter(s => s.category === activeCategory);
+
+  const handleSubmit = e => {
+  e.preventDefault();
+
+  const toLearn = [], toTeach = [];
+  Object.entries(subjectStates).forEach(([sub, st]) => {
+    if (st === 'learn') toLearn.push(sub);
+    if (st === 'teach') toTeach.push(sub);
+  });
+
+  const total = toLearn.length + toTeach.length;
+
+  // Hard block if nothing is selected
+  if (total === 0) {
+    setWarning("You must select at least one subject to learn or teach.");
+    return;
+  }
+
+  // Hard block if over limit
+  if (total > 14) {
+    setWarning(You’ve selected ${total} subjects. Please limit to 14.);
+    return;
+  }
+
+  // Clear warning if they previously exceeded limit and now corrected
+  if (warning && total <= 14) {
+    setWarning('');
+  }
+
+  // Soft warning if only one side is selected
+  if (toLearn.length === 0) {
+    setWarning("You haven’t selected any subjects to learn. You may have fewer match results.");
+  } else if (toTeach.length === 0) {
+    setWarning("You haven’t selected any subjects to teach. You may have fewer match results.");
+  } else {
+    setWarning(''); // clear warning if both are selected
+  }
+
+  axios.post(/api/user/${userId}/preference, {
+    availableDays: selectedDays.join(', '),
+    subjectsToLearn: toLearn.join(', '),
+    subjectsToTeach: toTeach.join(', ')
+  })
+    .then(() => {
+      setMessage('Preference updated successfully.');
+      navigate('/matchlist');
+    })
+    .catch(err => {
+      const status = err.response?.status;
+      if (status === 500) {
+        setMessage('Too many preferences picked. Please select fewer subjects.');
+      } else {
+        const data = err.response?.data;
+        let msg = 'Update failed.';
+        if (data) {
+          if (typeof data === 'string') msg = data;
+          else if (data.message) msg = data.message;
+          else if (data.error) msg = data.error;
+          else msg = JSON.stringify(data);
+        }
+        setMessage(msg);
+      }
+    });
+};
 
   return (
-    <div style={pageStyle}>
-      <h2 style={headerStyle}>Match List</h2>
-      <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-        <button style={buttonStyle} onClick={() => navigate('/update')}>Update Preference</button>
-      </div>
-      {error && (
-        <p style={{ color: 'blue', textAlign: 'center' }}>
-          {typeof error === 'object' ? JSON.stringify(error) : error}
-        </p>
-      )}
-      <div style={cardContainerStyle}>
-        {Array.isArray(matches) && matches.length > 0 ? (
-          matches.map((match) => (
-            <TinderCard
-              key={match.user.id}
-              onSwipe={(dir) => onSwipe(dir, match.user.id)}
-              onCardLeftScreen={() => onCardLeftScreen(match.user.id)}
-              preventSwipe={[]} // Allow swiping in all directions
-            >
-              <div style={cardStyle}>
-                <div style={imageContainerStyle}>
-                  <span style={emojiStyle}>{getEngineerEmoji(match.user)}</span>
-                </div>
-                <div style={textContainerStyle}>
-                  <h3 style={usernameStyle}>{getUsername(match.user)}</h3>
-                  <p><strong>Common Days:</strong> {match.commonDays.join(', ')}</p>
-                  <p><strong>Common Subjects:</strong> {match.commonSubjects.join(', ')}</p>
-                  <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-                    <button className="pressable" style={buttonStyle} onClick={() => onSwipe('left', match.user.id)}>✖️</button>
-                    <button className="pressable" style={buttonStyle} onClick={() => onSwipe('right', match.user.id)}>✔️</button>
-                  </div>
-                </div>
-              </div>
-            </TinderCard>
-          ))
-        ) : (
-          <p style={{
-  textAlign: 'center',
-  color: '#ffffff',
-  fontSize: '1rem',
-  fontWeight: 'bold',
-  textShadow: '0 1px 3px rgba(0,0,0,0.6)',
-  marginTop: '2rem'
-}}>
-  You've swiped the whole school—more might swim by later! 🐟📚
-</p>
+    <div style={isMobile ? { ...styles.container, ...mobileContainer } : styles.container}>
+      <h2 style={styles.heading}>Update Preferences</h2>
+      <form onSubmit={handleSubmit}>
 
-        )}
+        <fieldset style={styles.fieldset}>
+          <legend style={styles.legend}>Available Days</legend>
+          <div style={styles.dayPillContainer}>
+            {DAYS.map(day => (
+              <span
+                key={day}
+                style={styles.dayPill(selectedDays.includes(day))}
+                onClick={() => handleDayClick(day)}
+              >
+                {day}
+              </span>
+            ))}
+          </div>
+        </fieldset>
+
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <fieldset style={styles.fieldset}>
+              <legend style={styles.legend}>Subject Preferences</legend>
+          <div style={styles.filterBar}>
+            {CATEGORIES.map(cat => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setActiveCategory(cat)}
+                style={styles.filterButton(activeCategory === cat)}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+          <p style={styles.filterNote}>
+            🎯 Stay under 14 subjects to match with the best partners!
+          </p>
+          {warning && (
+            <p style={{ color: 'red', textAlign: 'center', marginBottom: '1rem' }}>
+              {warning}
+            </p>
+          )}
+          <div style={{ width: '100%' }}>
+  <div style={isMobile
+    ? { ...styles.subjectGrid, ...mobileSubjectGrid }
+    : styles.subjectGrid
+  }>
+    {filteredSubjects.map(({ name }) => (
+      <div
+        key={name}
+        style={isMobile ? { ...styles.subjectRow, ...mobileOverrides.subjectRow } : styles.subjectRow}
+      >
+        <span style={styles.subjectName}>{name}</span>
+        <div
+  onClick={() => {
+    const nextState =
+      subjectStates[name] === 'none' ? 'learn' :
+      subjectStates[name] === 'learn' ? 'teach' : 'none';
+    setSubjectState(name, nextState);
+  }}
+  style={{
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: isMobile ? '100px' : '120px',
+    height: isMobile ? '34px' : '38px',
+    borderRadius: '999px',
+    backgroundColor:
+      subjectStates[name] === 'learn'
+        ? '#aef4ff'
+        : subjectStates[name] === 'teach'
+          ? '#c3fccc'
+          : '#e2e8f0',
+    boxShadow:
+      subjectStates[name] !== 'none'
+        ? '0 0 6px rgba(0,0,0,0.2)'
+        : 'inset 0 0 4px rgba(0,0,0,0.1)',
+    color: subjectStates[name] === 'none' ? '#555' : '#065f46',
+    fontWeight: 600,
+    fontSize: isMobile ? '0.75rem' : '0.85rem',
+    cursor: 'pointer',
+    transition: 'all 0.25s ease',
+    marginLeft: isMobile ? '8px' : '16px',
+    userSelect: 'none'
+  }}
+  title="Click to cycle: None → Learn → Teach"
+>
+  {subjectStates[name] === 'learn'
+    ? 'Learn'
+    : subjectStates[name] === 'teach'
+      ? 'Teach'
+      : 'None'}
+</div>
+            </div>
+          ))}
       </div>
-      {bottomMessage && (
-        <p style={{ color: 'blue', textAlign: 'center', marginTop: '1rem' }}>
-          {bottomMessage}
-        </p>
-      )}
+    </div>
+
+        </fieldset>
+      </div>
+
+        <div style={styles.buttonContainer}>
+          <button
+            type="submit"
+            style={{
+              backgroundColor: '#5ccdc1',
+              fontWeight: 'bold',
+              padding: '0.5rem 1rem',
+              borderRadius: '4px',
+              color: '#fff',
+              border: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            Update Preferences
+          </button>
+          <button
+            type="button"
+            onClick={handleClear}
+            style={{
+              marginLeft: '1rem',
+              backgroundColor: '#b0bec5', // Soft gray-blue
+              fontWeight: 'bold',
+              padding: '0.5rem 1rem',
+              borderRadius: '4px',
+              color: '#fff',
+              border: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            Clear Preferences
+          </button>
+
+        </div>
+      </form>
+
+      {warning && <p style={{ color: 'orange', textAlign: 'center' }}>{warning}</p>}
+      {message && <p style={styles.error}>{message}</p>}
+        
     </div>
   );
 }
-
-export default MatchList;
