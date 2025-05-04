@@ -196,9 +196,15 @@ const getEngineerEmoji = (user) => {
             </TinderCard>
           ))
         ) : (
-          <p style={{ textAlign: 'center' }}>
-            {Array.isArray(matches) ? "No matches available." : matches}
-          </p>
+          <p style={{
+  textAlign: 'center',
+  color: '#ffffff',
+  fontSize: '1.2rem',
+  fontWeight: 'bold',
+  textShadow: '0 1px 3px rgba(0,0,0,0.6)'
+}}>
+  {Array.isArray(matches) ? "No matches available." : matches}
+</p>
         )}
       </div>
       {bottomMessage && (
