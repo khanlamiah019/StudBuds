@@ -1,10 +1,8 @@
 package com.studbuds.service;
 
 import com.studbuds.model.Preference;
-import com.studbuds.model.Swipe;
 import com.studbuds.model.User;
 import com.studbuds.repository.PreferenceRepository;
-import com.studbuds.repository.SwipeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,8 +12,12 @@ import java.util.stream.Collectors;
 @Service
 public class MatchingService {
 
-    @Autowired private PreferenceRepository preferenceRepository;
-    @Autowired private SwipeRepository swipeRepository;
+    @Autowired
+    private PreferenceRepository preferenceRepository;
+
+    public void setPreferenceRepository(PreferenceRepository prefRepo) {
+        this.preferenceRepository = prefRepo;
+    }
 
     private static final double AVAILABILITY_WEIGHT = 2.0;
     private static final double PARTIAL_SYNERGY_WEIGHT = 0.5;
@@ -28,11 +30,6 @@ public class MatchingService {
             return Collections.emptyList();
         }
 
-        // Exclude users already swiped on
-        Set<Long> alreadySwipedIds = swipeRepository.findByFromUser(currentUser).stream()
-                .map(swipe -> swipe.getToUser().getId())
-                .collect(Collectors.toSet());
-
         Set<String> currentDays = parseCSV(currentPref.getAvailableDays());
         Set<String> currentTeach = parseCSV(currentPref.getSubjectsToTeach());
         Set<String> currentLearn = parseCSV(currentPref.getSubjectsToLearn());
@@ -41,9 +38,7 @@ public class MatchingService {
                 currentUser.getMajor(),
                 currentUser.getYear(),
                 currentUser.getId()
-        ).stream()
-         .filter(p -> !alreadySwipedIds.contains(p.getUser().getId()))
-         .collect(Collectors.toList());
+        );
 
         List<MatchingResultDTO> narrowResults = computeMatches(currentUser, currentDays, currentTeach, currentLearn, narrowCandidates);
         if (!narrowResults.isEmpty()) {
@@ -53,7 +48,6 @@ public class MatchingService {
 
         List<Preference> fallbackCandidates = preferenceRepository.findAll().stream()
                 .filter(p -> !p.getUser().getId().equals(currentUser.getId()))
-                .filter(p -> !alreadySwipedIds.contains(p.getUser().getId()))
                 .collect(Collectors.toList());
 
         List<MatchingResultDTO> fallbackResults = computeMatches(currentUser, currentDays, currentTeach, currentLearn, fallbackCandidates);
@@ -62,10 +56,10 @@ public class MatchingService {
     }
 
     private List<MatchingResultDTO> computeMatches(User currentUser,
-                                                    Set<String> currentDays,
-                                                    Set<String> currentTeach,
-                                                    Set<String> currentLearn,
-                                                    List<Preference> candidates) {
+                                                   Set<String> currentDays,
+                                                   Set<String> currentTeach,
+                                                   Set<String> currentLearn,
+                                                   List<Preference> candidates) {
         List<MatchingResultDTO> results = new ArrayList<>();
         for (Preference otherPref : candidates) {
             User otherUser = otherPref.getUser();
@@ -87,21 +81,12 @@ public class MatchingService {
             p2TeachesP1.retainAll(otherTeach);
 
             double score = 0.0;
-            if (!commonDays.isEmpty()) {
-                score += AVAILABILITY_WEIGHT;
-            }
-            if (!p1TeachesP2.isEmpty()) {
-                score += PARTIAL_SYNERGY_WEIGHT;
-            }
-            if (!p2TeachesP1.isEmpty()) {
-                score += PARTIAL_SYNERGY_WEIGHT;
-            }
-            if (!p1TeachesP2.isEmpty() && !p2TeachesP1.isEmpty()) {
-                score += BOTH_SYNERGY_BONUS;
-            }
-            if (score < MATCH_THRESHOLD) {
-                continue;
-            }
+            if (!commonDays.isEmpty()) score += AVAILABILITY_WEIGHT;
+            if (!p1TeachesP2.isEmpty()) score += PARTIAL_SYNERGY_WEIGHT;
+            if (!p2TeachesP1.isEmpty()) score += PARTIAL_SYNERGY_WEIGHT;
+            if (!p1TeachesP2.isEmpty() && !p2TeachesP1.isEmpty()) score += BOTH_SYNERGY_BONUS;
+
+            if (score < MATCH_THRESHOLD) continue;
 
             MatchingResultDTO dto = new MatchingResultDTO();
             dto.setUser(otherUser);
@@ -118,18 +103,11 @@ public class MatchingService {
     }
 
     private Set<String> parseCSV(String csv) {
-        if (csv == null || csv.trim().isEmpty()) {
-            return Collections.emptySet();
-        }
-        String[] parts = csv.split(",");
-        Set<String> result = new HashSet<>();
-        for (String part : parts) {
-            String trimmed = part.trim().toLowerCase();
-            if (!trimmed.isEmpty()) {
-                result.add(trimmed);
-            }
-        }
-        return result;
+        if (csv == null || csv.trim().isEmpty()) return Collections.emptySet();
+        return Arrays.stream(csv.split(","))
+                .map(s -> s.trim().toLowerCase())
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toSet());
     }
 
     public static class MatchingResultDTO {
@@ -137,8 +115,6 @@ public class MatchingService {
         private List<String> commonDays;
         private List<String> commonSubjects;
         private double matchScore;
-
-        public MatchingResultDTO() {}
 
         public User getUser() {
             return user;
