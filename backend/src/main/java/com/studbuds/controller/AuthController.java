@@ -47,19 +47,25 @@ public class AuthController {
 
         // Debug logging
         System.out.println("[DEBUG] Checking UID/email existence during signup...");
-        boolean uidExists = userRepository.findByFirebaseUid(uid).isPresent();
-        boolean emailExists = userRepository.existsByEmailIgnoreCase(email);
-        System.out.println("[DEBUG] UID exists: " + uidExists + " | Email exists: " + emailExists);
+        if (userRepository.findByFirebaseUid(uid).isPresent()) {
+    return ResponseEntity.status(HttpStatus.CONFLICT)
+        .body("This Firebase account is already registered. Try logging in instead.");
+}
 
-        if (uidExists) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body("This Firebase account is already registered. Try logging in instead.");
-        }
+Optional<User> existingUser = userRepository.findByEmailIgnoreCase(email);
+if (existingUser.isPresent()) {
+    if (!existingUser.get().getFirebaseUid().equals(uid)) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body("This email is already tied to a different account.");
+    }
 
-        if (emailExists) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body("This email is already tied to a local account. If you deleted your account recently, try again in a few moments.");
-        }
+    // Clean up the stale local record
+    preferenceRepository.findByUser(existingUser.get()).ifPresent(preferenceRepository::delete);
+    userRepository.delete(existingUser.get());
+    userRepository.flush();
+    System.out.println("[⚠️] Cleaned up stale user record for email: " + email);
+}
+
 
         User user = new User();
         user.setName(name);
