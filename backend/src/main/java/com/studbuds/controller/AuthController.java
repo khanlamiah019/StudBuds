@@ -160,7 +160,7 @@ public ResponseEntity<?> deleteAccount(
 
     User user = userOpt.get();
 
-    // 🔥 Delete Firebase account if still exists
+    // 🔥 Delete Firebase account if it still exists
     try {
         firebaseAuth.deleteUser(uid);
         System.out.println("[✅] Firebase user deleted for UID: " + uid);
@@ -174,13 +174,33 @@ public ResponseEntity<?> deleteAccount(
         }
     }
 
-    // 🧹 Clean up local preferences and user
+    // 🧹 Delete swipes (to avoid FK constraint violations)
+    try {
+        List<Swipe> swipesByUser = swipeRepository.findBySwiper(user);
+        List<Swipe> swipesOfUser = swipeRepository.findBySwiped(user);
+        swipeRepository.deleteAll(swipesByUser);
+        swipeRepository.deleteAll(swipesOfUser);
+        System.out.println("[✅] Deleted swipes for UID: " + uid);
+    } catch (Exception e) {
+        System.err.println("[🔥] Failed to delete swipes: " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(Map.of("message", "Failed to delete user swipes: " + e.getMessage()));
+    }
+
+    // 🧹 Delete preferences
     try {
         preferenceRepository.findByUser(user).ifPresent(pref -> {
             preferenceRepository.delete(pref);
             System.out.println("[✅] Deleted preferences for UID: " + uid);
         });
+    } catch (Exception e) {
+        System.err.println("[🔥] Failed to delete preferences: " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(Map.of("message", "Failed to delete preferences: " + e.getMessage()));
+    }
 
+    // 🧹 Delete user
+    try {
         userRepository.delete(user);
         userRepository.flush();
         System.out.println("[✅] Deleted local user: " + uid);
