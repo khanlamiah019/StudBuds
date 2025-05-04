@@ -355,7 +355,12 @@ export default function UpdatePreference({ userId }) {
 };
 
   return (
-    <div style={isMobile ? { ...styles.container, ...mobileContainer } : styles.container}>
+    <div
+  style={{
+    ...styles.container,
+    ...(isMobile ? mobileContainer : {})
+  }}
+>
       <h2 style={styles.heading}>Update Preferences</h2>
       <form onSubmit={handleSubmit}>
 
