@@ -292,6 +292,7 @@ export default function UpdatePreference({ userId }) {
 
   const handleSubmit = e => {
   e.preventDefault();
+
   const toLearn = [], toTeach = [];
   Object.entries(subjectStates).forEach(([sub, st]) => {
     if (st === 'learn') toLearn.push(sub);
@@ -304,6 +305,46 @@ export default function UpdatePreference({ userId }) {
     return;
   }
 
+  // Clear warning if they previously exceeded 14 but now corrected
+  if (warning && total <= 14) {
+    setWarning('');
+  }
+
+  // Soft warnings if one of the two is missing
+  if (toLearn.length === 0) {
+    setWarning("You haven’t selected any subjects to learn. You may have fewer match results.");
+  } else if (toTeach.length === 0) {
+    setWarning("You haven’t selected any subjects to teach. You may have fewer match results.");
+  } else {
+    setWarning(''); // Clear warning if both are selected
+  }
+
+  axios.post(`/api/user/${userId}/preference`, {
+    availableDays: selectedDays.join(', '),
+    subjectsToLearn: toLearn.join(', '),
+    subjectsToTeach: toTeach.join(', ')
+  })
+    .then(() => {
+      setMessage('Preference updated successfully.');
+      navigate('/matchlist');
+    })
+    .catch(err => {
+      const status = err.response?.status;
+      if (status === 500) {
+        setMessage('Too many preferences picked. Please select fewer subjects.');
+      } else {
+        const data = err.response?.data;
+        let msg = 'Update failed.';
+        if (data) {
+          if (typeof data === 'string') msg = data;
+          else if (data.message) msg = data.message;
+          else if (data.error) msg = data.error;
+          else msg = JSON.stringify(data);
+        }
+        setMessage(msg);
+      }
+    });
+};
     axios.post(`/api/user/${userId}/preference`, {
       availableDays: selectedDays.join(', '),
       subjectsToLearn: toLearn.join(', '),
