@@ -52,29 +52,38 @@ class AuthControllerTest {
 
     // ─── SIGNUP ───────────────────────────────────────────────────────────────
 
-    @Test
-    void signUp_success() throws Exception {
-        when(userRepository.findByEmailIgnoreCase(anyString())).thenReturn(Optional.empty());
+   @Test
+void signUp_success() throws Exception {
+    when(userRepository.findByEmailIgnoreCase(anyString()))
+        .thenReturn(Optional.empty());
 
-        FirebaseAuthException notFoundEx = mock(FirebaseAuthException.class);
-        when(notFoundEx.getAuthErrorCode()).thenReturn(AuthErrorCode.USER_NOT_FOUND);
-        when(firebaseAuth.getUserByEmail(anyString())).thenThrow(notFoundEx);
+    FirebaseToken mockToken = mock(FirebaseToken.class);
+    when(mockToken.getUid()).thenReturn("uid-xyz");
+    when(firebaseAuth.verifyIdToken(anyString())).thenReturn(mockToken);
 
-        UserRecord record = mock(UserRecord.class);
-        when(record.getUid()).thenReturn("uid-xyz");
-        when(firebaseAuth.createUser(any(UserRecord.CreateRequest.class))).thenReturn(record);
+    when(userRepository.findByFirebaseUid("uid-xyz"))
+        .thenReturn(Optional.empty());
 
-        when(userRepository.save(any(User.class))).thenAnswer(inv -> {
+    when(userRepository.save(any(User.class)))
+        .thenAnswer(inv -> {
             User u = inv.getArgument(0);
             u.setId(99L);
             return u;
         });
-        when(preferenceRepository.save(any(Preference.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        ResponseEntity<?> resp = authController.signUp(signupReq);
-        assertEquals(HttpStatus.CREATED, resp.getStatusCode());
-    }
+    when(preferenceRepository.save(any(Preference.class)))
+        .thenAnswer(inv -> inv.getArgument(0));
 
+    signupReq.setFirebaseToken("dummy-token");
+
+    ResponseEntity<?> resp = authController.signUp(signupReq);
+    assertEquals(HttpStatus.CREATED, resp.getStatusCode());
+
+    @SuppressWarnings("unchecked")
+    Map<String, ?> body = (Map<String, ?>) resp.getBody();
+    assertEquals("User registered successfully.", body.get("message"));
+    assertEquals(99L, body.get("userId"));
+}
     // ─── LOGIN ────────────────────────────────────────────────────────────────
 
     @Test
