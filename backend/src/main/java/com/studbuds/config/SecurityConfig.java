@@ -26,33 +26,32 @@ public class SecurityConfig {
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
             .authorizeRequests()
-                // ✅ Allow test endpoint through without auth
                 .antMatchers("/api/test/**").authenticated()
                 .antMatchers("/api/auth/signup", "/api/auth/login").permitAll()
-                .anyRequest().authenticated()
-            // .and()
-            // ✅ Add Firebase filter AFTER public endpoints are allowed
-            // .addFilterBefore(new FirebaseAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+                .anyRequest().authenticated();
+                // ✅ Firebase filter is commented out for now
+                // .and()
+                // .addFilterBefore(new FirebaseAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     @Bean
-public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(Arrays.asList(
-        "http://127.0.0.1:3000",
-        "http://localhost:3000",
-        "https://thankful-desert-098fcfa0f.6.azurestaticapps.net"
-    ));
-    configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-    configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
-    configuration.setExposedHeaders(Arrays.asList("Authorization"));
-    configuration.setAllowCredentials(true);
-    configuration.setMaxAge(3600L); // Optional: helps reduce preflight traffic
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://127.0.0.1:3000",
+            "http://localhost:3000",
+            "https://thankful-desert-098fcfa0f.6.azurestaticapps.net"
+        ));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
+        configuration.setExposedHeaders(Arrays.asList("Authorization"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
 
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", configuration);
-    return source;
-}
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 }
