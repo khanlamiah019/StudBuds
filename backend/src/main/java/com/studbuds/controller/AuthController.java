@@ -45,19 +45,26 @@ public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
 
     String uid = decoded.getUid();
 
-    // 🔒 Reject if UID is already registered
+    // 🔒 Check for existing UID first
     if (userRepository.findByFirebaseUid(uid).isPresent()) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
             .body("This Firebase account is already registered. Try logging in instead.");
     }
 
-    // 🧹 Cleanup if email is already in DB (from deleted account)
+    // 🧹 Check if this email was used by another (deleted) Firebase account
     Optional<User> existingUser = userRepository.findByEmailIgnoreCase(email);
     if (existingUser.isPresent()) {
-        System.out.println("[⚠️] Existing user found by email. Cleaning up local record...");
-        preferenceRepository.findByUser(existingUser.get()).ifPresent(preferenceRepository::delete);
-        userRepository.delete(existingUser.get());
-        userRepository.flush();  // 💥 critical!
+        User user = existingUser.get();
+        try {
+            System.out.println("[⚠️] Existing user found by email. Cleaning up local record...");
+            preferenceRepository.findByUser(user).ifPresent(preferenceRepository::delete);
+            userRepository.delete(user);
+            userRepository.flush();
+        } catch (Exception e) {
+            System.err.println("[🔥] Failed to clean up old user: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Failed to clean up old account. Please try again.");
+        }
     }
 
     // ✅ Create new user
