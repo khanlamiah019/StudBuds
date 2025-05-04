@@ -347,8 +347,9 @@ export default function UpdatePreference({ userId }) {
           </div>
         </fieldset>
 
-        <fieldset style={styles.fieldset}>
-          <legend style={styles.legend}>Subject Preferences</legend>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <fieldset style={styles.fieldset}>
+              <legend style={styles.legend}>Subject Preferences</legend>
           <div style={styles.filterBar}>
             {CATEGORIES.map(cat => (
               <button
