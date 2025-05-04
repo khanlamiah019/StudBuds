@@ -29,37 +29,38 @@ public class AuthController {
 
     // ─── SIGNUP ───────────────────────────────────────────────────────────────
 
-    @PostMapping("/signup")
+@PostMapping("/signup")
 public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
     String email = req.getEmail().trim().toLowerCase();
-
-    // 1) Basic checks
-    if (!email.endsWith("@cooper.edu")) {
-        return ResponseEntity.badRequest().body("Email must be a @cooper.edu address");
-    }
-
-    // 2) Validate token and extract Firebase UID
+    String name = req.getName();
     String firebaseToken = req.getFirebaseToken();
-    if (firebaseToken == null || firebaseToken.isEmpty()) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing Firebase token.");
-    }
 
+    // 1) Basic validation
+    if (!email.endsWith("@cooper.edu"))
+        return ResponseEntity.badRequest().body("Email must be a @cooper.edu address");
+    if (req.getPassword() == null || req.getPassword().length() < 9)
+        return ResponseEntity.badRequest().body("Password must be at least 9 characters long");
+
+    // 2) Parse Firebase token to get UID and verify
     FirebaseToken decoded;
     try {
         decoded = firebaseAuth.verifyIdToken(firebaseToken);
     } catch (FirebaseAuthException e) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Firebase token.");
+        return ResponseEntity
+            .status(HttpStatus.UNAUTHORIZED)
+            .body("Invalid Firebase token: " + e.getMessage());
     }
 
     String uid = decoded.getUid();
-    String name = req.getName();
 
-    // 3) Prevent duplicates in local DB
+    // 3) Ensure UID is not already in use in local DB
     if (userRepository.findByFirebaseUid(uid).isPresent()) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body("Account already exists. Please log in.");
+        return ResponseEntity
+            .status(HttpStatus.CONFLICT)
+            .body("Email already in use. Please log in instead.");
     }
 
-    // 4) Save to local DB
+    // 4) Persist user in local DB
     User user = new User();
     user.setName(name);
     user.setEmail(email);
@@ -84,6 +85,7 @@ public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
     resp.put("userId", user.getId());
     return ResponseEntity.status(HttpStatus.CREATED).body(resp);
 }
+
 
 
     // ─── LOGIN ────────────────────────────────────────────────────────────────
