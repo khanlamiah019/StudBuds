@@ -26,53 +26,62 @@ public class AuthController {
     @Autowired private FirebaseAuth firebaseAuth;
 
     @PostMapping("/signup")
-    public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
-        String email = req.getEmail().trim().toLowerCase();
-        String name = req.getName();
-        String firebaseToken = req.getFirebaseToken();
+public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
+    String email = req.getEmail().trim().toLowerCase();
+    String name = req.getName();
+    String firebaseToken = req.getFirebaseToken();
 
-        if (!email.endsWith("@cooper.edu"))
-            return ResponseEntity.badRequest().body("Email must be a @cooper.edu address");
-        if (req.getPassword() == null || req.getPassword().length() < 9)
-            return ResponseEntity.badRequest().body("Password must be at least 9 characters long");
+    if (!email.endsWith("@cooper.edu"))
+        return ResponseEntity.badRequest().body("Email must be a @cooper.edu address");
+    if (req.getPassword() == null || req.getPassword().length() < 9)
+        return ResponseEntity.badRequest().body("Password must be at least 9 characters long");
 
-        FirebaseToken decoded;
-        try {
-            decoded = firebaseAuth.verifyIdToken(firebaseToken);
-        } catch (FirebaseAuthException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Firebase token: " + e.getMessage());
-        }
-
-        String uid = decoded.getUid();
-
-        if (userRepository.findByFirebaseUid(uid).isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already in use. Please log in instead.");
-        }
-
-        User user = new User();
-        user.setName(name);
-        user.setEmail(email);
-        user.setFirebaseUid(uid);
-        user.setCreatedAt(LocalDateTime.now());
-        user.setMajor(req.getMajor());
-        user.setYear(req.getYear());
-        userRepository.save(user);
-
-        Preference pref = new Preference();
-        pref.setUser(user);
-        pref.setAvailableDays("");
-        pref.setSubjectsToLearn("");
-        pref.setSubjectsToTeach("");
-        preferenceRepository.save(pref);
-
-        user.setPreference(pref);
-        userRepository.save(user);
-
-        Map<String, Object> resp = new HashMap<>();
-        resp.put("message", "User registered successfully.");
-        resp.put("userId", user.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(resp);
+    FirebaseToken decoded;
+    try {
+        decoded = firebaseAuth.verifyIdToken(firebaseToken);
+    } catch (FirebaseAuthException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Firebase token: " + e.getMessage());
     }
+
+    String uid = decoded.getUid();
+
+    // Check if user already exists locally with same Firebase UID
+    if (userRepository.findByFirebaseUid(uid).isPresent()) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body("This Firebase account is already registered. Try logging in instead.");
+    }
+
+    // Defensive check: user might exist with same email even after deletion
+    if (userRepository.findByEmailIgnoreCase(email).isPresent()) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body("This email is tied to a deleted account or already exists in the database.");
+    }
+
+    // Create new local user
+    User user = new User();
+    user.setName(name);
+    user.setEmail(email);
+    user.setFirebaseUid(uid);
+    user.setCreatedAt(LocalDateTime.now());
+    user.setMajor(req.getMajor());
+    user.setYear(req.getYear());
+    userRepository.save(user);
+
+    Preference pref = new Preference();
+    pref.setUser(user);
+    pref.setAvailableDays("");
+    pref.setSubjectsToLearn("");
+    pref.setSubjectsToTeach("");
+    preferenceRepository.save(pref);
+
+    user.setPreference(pref);
+    userRepository.save(user);
+
+    Map<String, Object> resp = new HashMap<>();
+    resp.put("message", "User registered successfully.");
+    resp.put("userId", user.getId());
+    return ResponseEntity.status(HttpStatus.CREATED).body(resp);
+}
 
     @PostMapping("/login")
     public ResponseEntity<?> login(
