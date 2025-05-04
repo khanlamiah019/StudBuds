@@ -109,61 +109,65 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/delete")
-    public ResponseEntity<?> deleteAccount(
-        @RequestBody(required = false) DeleteAccountRequest body,
-        @RequestHeader(value = "Authorization", required = false) String header
-    ) {
-        String idToken = null;
-        if (header != null && header.startsWith("Bearer ")) {
-            idToken = header.substring(7);
-        } else if (body != null && body.getFirebaseToken() != null) {
-            idToken = body.getFirebaseToken();
-        }
-
-        if (idToken == null) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Missing Firebase token"));
-        }
-
-        try {
-            FirebaseToken decoded = firebaseAuth.verifyIdToken(idToken);
-            String uid = decoded.getUid();
-
-            Optional<User> userOpt = userRepository.findByFirebaseUid(uid);
-            if (userOpt.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found in local DB."));
-            }
-
-            User user = userOpt.get();
-
-            try {
-                firebaseAuth.deleteUser(uid);
-                System.out.println("[DEBUG] Firebase user deleted: " + uid);
-            } catch (FirebaseAuthException e) {
-                if (!"USER_NOT_FOUND".equals(e.getAuthErrorCode().name())) {
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of("message", "Firebase error: " + e.getMessage()));
-                } else {
-                    System.out.println("[DEBUG] Firebase user already gone: " + uid);
-                }
-            }
-
-            preferenceRepository.findByUser(user).ifPresent(pref -> {
-                preferenceRepository.delete(pref);
-                System.out.println("[DEBUG] Deleted preference for user " + uid);
-            });
-
-            userRepository.delete(user);
-            System.out.println("[DEBUG] Deleted user from local DB: " + uid);
-
-            return ResponseEntity.ok(Map.of("message", "Account deleted successfully."));
-
-        } catch (FirebaseAuthException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("message", "Firebase error: " + e.getMessage()));
-        }
+@PostMapping("/delete")
+public ResponseEntity<?> deleteAccount(
+    @RequestBody(required = false) DeleteAccountRequest body,
+    @RequestHeader(value = "Authorization", required = false) String header
+) {
+    String idToken = null;
+    if (header != null && header.startsWith("Bearer ")) {
+        idToken = header.substring(7);
+    } else if (body != null && body.getFirebaseToken() != null) {
+        idToken = body.getFirebaseToken();
     }
 
+    if (idToken == null) {
+        return ResponseEntity.badRequest().body(Map.of("message", "Missing Firebase token"));
+    }
+
+    try {
+        FirebaseToken decoded = firebaseAuth.verifyIdToken(idToken);
+        String uid = decoded.getUid();
+
+        Optional<User> userOpt = userRepository.findByFirebaseUid(uid);
+        if (userOpt.isEmpty()) {
+            System.out.println("[❌] No local user found for UID: " + uid);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found in local DB."));
+        }
+
+        User user = userOpt.get();
+
+        // Check if Firebase user exists before deleting
+        try {
+            firebaseAuth.getUser(uid); // will throw if not found
+            firebaseAuth.deleteUser(uid);
+            System.out.println("[✅] Firebase user deleted for UID: " + uid);
+        } catch (FirebaseAuthException e) {
+            if ("USER_NOT_FOUND".equals(e.getAuthErrorCode().name())) {
+                System.out.println("[ℹ️] Firebase user already deleted for UID: " + uid);
+            } else {
+                System.out.println("[❌] Firebase deletion failed: " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Failed to delete Firebase user: " + e.getMessage()));
+            }
+        }
+
+        preferenceRepository.findByUser(user).ifPresent(pref -> {
+            preferenceRepository.delete(pref);
+            System.out.println("[✅] Deleted preference for UID: " + uid);
+        });
+
+        userRepository.delete(user);
+        System.out.println("[✅] Deleted user from local DB: " + uid);
+
+        return ResponseEntity.ok(Map.of("message", "Account deleted successfully."));
+
+    } catch (FirebaseAuthException e) {
+        System.out.println("[❌] Token verification failed: " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            .body(Map.of("message", "Invalid Firebase token: " + e.getMessage()));
+    }
+}
     // ─── DEBUG: Check if Firebase token matches local DB ──────────────────────
 
     @GetMapping("/check-sync")
