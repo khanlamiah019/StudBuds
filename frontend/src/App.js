@@ -96,10 +96,10 @@ function App() {
             <span></span><span></span><span></span>
           </div>
           <ul className={menuOpen ? 'menu-open' : ''}>
-            <li><Link to="/matchlist" onClick={() => setMenuOpen(false)}>Match List</Link></li>
-            <li><Link to="/update" onClick={() => setMenuOpen(false)}>Update Preferences</Link></li>
-            <li><Link to="/profile" onClick={() => setMenuOpen(false)}>Profile</Link></li>
-            <li><button onClick={handleLogout}>Logout</button></li>
+            <li><Link to="/matchlist" onClick={() => setMenuOpen(false)}>🐠 Match List</Link></li>
+            <li><Link to="/update" onClick={() => setMenuOpen(false)}>🐚 Update Preferences</Link></li>
+            <li><Link to="/profile" onClick={() => setMenuOpen(false)}>🐋 Profile</Link></li>
+            <li><button onClick={handleLogout}>🌊 Logout</button></li>
           </ul>
         </nav>
       )}
