@@ -35,7 +35,7 @@ function Login({ setUserId }) {
       const response = await axios.post(
         '/api/auth/login',
         { firebaseToken: token },
-        { headers: { 'Authorization': 'Bearer ${token}' } }
+        { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
       if (response.data && response.data.userId) {
