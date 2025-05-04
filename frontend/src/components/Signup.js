@@ -77,9 +77,9 @@ export default function Signup() {
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '2rem auto' }}>
-      <h2>Sign Up</h2>
-      <form onSubmit={handleSubmit}>
+    <div style={{ maxWidth: '420px', margin: '2rem auto', padding: '2rem', border: '1px solid #ccc', borderRadius: '8px' }}>
+      <h2 style={{ marginBottom: '1rem' }}>Sign Up</h2>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         <input name="name" value={formData.name} onChange={handleChange} placeholder="Name" required />
         <input name="email" type="email" value={formData.email} onChange={handleChange} placeholder="Email" required />
         <input name="password" type="password" value={formData.password} onChange={handleChange} placeholder="Password" required />
@@ -87,17 +87,29 @@ export default function Signup() {
           <option value="">Select Major</option>
           {allowedMajors.map(m => <option key={m} value={m}>{m}</option>)}
         </select>
-        <input name="year" type="number" value={formData.year} onChange={handleChange} placeholder="Year" required />
-        <label>
+        <input name="year" type="number" value={formData.year} onChange={handleChange} placeholder="Graduation Year" required />
+
+        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}>
           <input type="checkbox" checked={agreeToShare} onChange={() => setAgreeToShare(!agreeToShare)} />
           I agree to share my email with matches
         </label>
-        <button type="submit" disabled={isSubmitting || !agreeToShare}>
+
+        <button type="submit" disabled={isSubmitting || !agreeToShare} style={{
+          padding: '0.5rem',
+          backgroundColor: '#0056b3',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: isSubmitting || !agreeToShare ? 'not-allowed' : 'pointer'
+        }}>
           {isSubmitting ? 'Signing up...' : 'Sign Up'}
         </button>
       </form>
-      {message && <p style={{ color: 'blue' }}>{message}</p>}
-      <p>Already have an account? <Link to="/login">Login</Link></p>
+
+      {message && <p style={{ marginTop: '1rem', color: 'blue' }}>{message}</p>}
+      <p style={{ marginTop: '1rem', fontSize: '0.9rem' }}>
+        Already have an account? <Link to="/login">Login</Link>
+      </p>
     </div>
   );
 }
