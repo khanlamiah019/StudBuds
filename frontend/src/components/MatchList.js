@@ -10,12 +10,12 @@ function MatchList({ userId }) {
   const navigate = useNavigate();
 
   const cuteAnimalEmojiMap = {
-    "electrical engineering": "🐭",
-    "mechanical engineering": "🐱",
-    "civil engineering": "🐶",
-    "chemical engineering": "🐹",
-    "general engineering": "🐻",
-    "computer science": "🦊"
+    "electrical engineering": "🦈",
+    "mechanical engineering": "🐟",
+    "civil engineering": "🐠",
+    "chemical engineering": "🐡",
+    "general engineering": "🐬",
+    "computer science": "🐳"
   };
 
   const getEngineerEmoji = (user) => {
