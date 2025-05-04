@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from '../axiosSetup';
 import { useNavigate, Link } from 'react-router-dom';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 
 const allowedMajors = [
   "Electrical Engineering",
@@ -124,34 +124,41 @@ export default function Signup() {
   };
 
   const handleSubmit = async e => {
-    e.preventDefault();
-    setMessage('');
-    if (!validateForm()) return;
+  e.preventDefault();
+  setMessage('');
+  if (!validateForm()) return;
 
-    setIsSubmitting(true);
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-      const token = await userCredential.user.getIdToken();
+  setIsSubmitting(true);
 
-      await axios.post('/api/auth/signup', {
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        password: formData.password,
-        major: formData.major,
-        year: formData.year,
-        firebaseToken: token
-      });
+  try {
+    await signOut(auth); // 🧼 Important to clear any deleted or cached Firebase user
 
-      navigate('/login', { replace: true });
-    } catch (err) {
-      const status = err.response?.status;
-      const text = err.response?.data || err.message;
+    const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+    const token = await userCredential.user.getIdToken();
+
+    await axios.post('/api/auth/signup', {
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      password: formData.password,
+      major: formData.major,
+      year: formData.year,
+      firebaseToken: token
+    });
+
+    navigate('/login', { replace: true });
+  } catch (err) {
+    // Better error handling
+    if (err.code === 'auth/email-already-in-use') {
+      setMessage('This email is already registered. Try logging in instead.');
+    } else {
+      const text = err.response?.data || err.message || 'Something went wrong.';
       setMessage(text);
-    } finally {
-      setIsSubmitting(false);
     }
-  };
-
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+  
   return (
     <div style={styles.container}>
       <h2 style={styles.heading}>Sign Up for StudBuds</h2>
