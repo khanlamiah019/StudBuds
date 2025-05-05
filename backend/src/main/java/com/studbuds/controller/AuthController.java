@@ -32,70 +32,79 @@ public class AuthController {
     @Autowired private MatchRepository matchRepository;
 
     @PostMapping("/signup")
-    public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
-        String email = req.getEmail().trim().toLowerCase();
-        String name = req.getName();
-        String firebaseToken = req.getFirebaseToken();
+public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
+    String email = req.getEmail().trim().toLowerCase();
+    String name = req.getName();
+    String firebaseToken = req.getFirebaseToken();
 
-        if (!email.endsWith("@cooper.edu"))
-            return ResponseEntity.badRequest().body("Email must be a @cooper.edu address");
-        if (req.getPassword() == null || req.getPassword().length() < 9)
-            return ResponseEntity.badRequest().body("Password must be at least 9 characters long");
+    if (!email.endsWith("@cooper.edu"))
+        return ResponseEntity.badRequest().body("Email must be a @cooper.edu address");
+    if (req.getPassword() == null || req.getPassword().length() < 9)
+        return ResponseEntity.badRequest().body("Password must be at least 9 characters long");
 
-        FirebaseToken decoded;
-        try {
-            decoded = firebaseAuth.verifyIdToken(firebaseToken);
-        } catch (FirebaseAuthException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Firebase token: " + e.getMessage());
-        }
-
-        String uid = decoded.getUid();
-
-        if (userRepository.findByFirebaseUid(uid).isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("This Firebase account is already registered. Try logging in instead.");
-        }
-
-        Optional<User> existingUser = userRepository.findByEmailIgnoreCase(email);
-        existingUser.ifPresent(user -> {
-            try {
-                List<Swipe> swipesByUser = swipeRepository.findByFromUser(user);
-                List<Swipe> swipesOfUser = swipeRepository.findByToUser(user);
-                swipeRepository.deleteAll(swipesByUser);
-                swipeRepository.deleteAll(swipesOfUser);
-
-                matchRepository.deleteAll(matchRepository.findByUser1OrUser2(user, user));
-
-                preferenceRepository.findByUser(user).ifPresent(preferenceRepository::delete);
-                userRepository.delete(user);
-                userRepository.flush();
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException("Failed to clean up existing user with this email.");
-            }
-        });
-
-        User user = new User();
-        user.setName(name);
-        user.setEmail(email);
-        user.setFirebaseUid(uid);
-        user.setCreatedAt(LocalDateTime.now());
-        user.setMajor(req.getMajor());
-        user.setYear(req.getYear());
-        userRepository.save(user);
-
-        Preference pref = new Preference();
-        pref.setUser(user);
-        pref.setAvailableDays("");
-        pref.setSubjectsToLearn("");
-        pref.setSubjectsToTeach("");
-        preferenceRepository.save(pref);
-
-        Map<String, Object> resp = new HashMap<>();
-        resp.put("message", "User registered successfully.");
-        resp.put("userId", user.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(resp);
+    FirebaseToken decoded;
+    try {
+        decoded = firebaseAuth.verifyIdToken(firebaseToken);
+    } catch (FirebaseAuthException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Firebase token: " + e.getMessage());
     }
+
+    String uid = decoded.getUid();
+
+    // Reject if UID is already registered
+    if (userRepository.findByFirebaseUid(uid).isPresent()) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body("This Firebase account is already registered. Try logging in instead.");
+    }
+
+    // Cleanup if email is already in DB from an old deleted/broken user
+    Optional<User> existingUser = userRepository.findByEmailIgnoreCase(email);
+    existingUser.ifPresent(user -> {
+        try {
+            // 1. Delete matches
+            matchRepository.deleteAll(matchRepository.findByUser1OrUser2(user, user));
+
+            // 2. Delete swipes
+            swipeRepository.deleteAll(swipeRepository.findByFromUser(user));
+            swipeRepository.deleteAll(swipeRepository.findByToUser(user));
+
+            // 3. Delete preference
+            preferenceRepository.findByUser(user).ifPresent(preferenceRepository::delete);
+
+            // 4. Delete user
+            userRepository.delete(user);
+            userRepository.flush();
+
+            System.out.println("[🧹] Cleaned up old user with email: " + email);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to clean up existing user with this email: " + e.getMessage());
+        }
+    });
+
+    // ✅ Create new user
+    User user = new User();
+    user.setName(name);
+    user.setEmail(email);
+    user.setFirebaseUid(uid);
+    user.setCreatedAt(LocalDateTime.now());
+    user.setMajor(req.getMajor());
+    user.setYear(req.getYear());
+    userRepository.save(user);
+
+    // ✅ Create default preference
+    Preference pref = new Preference();
+    pref.setUser(user);
+    pref.setAvailableDays("");
+    pref.setSubjectsToLearn("");
+    pref.setSubjectsToTeach("");
+    preferenceRepository.save(pref);
+
+    Map<String, Object> resp = new HashMap<>();
+    resp.put("message", "User registered successfully.");
+    resp.put("userId", user.getId());
+    return ResponseEntity.status(HttpStatus.CREATED).body(resp);
+}
 
     @PostMapping("/login")
     public ResponseEntity<?> login(
@@ -132,69 +141,73 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/delete")
-    public ResponseEntity<?> deleteAccount(
-            @RequestBody(required = false) DeleteAccountRequest body,
-            @RequestHeader(value = "Authorization", required = false) String header
-    ) {
-        String idToken = null;
-        if (header != null && header.startsWith("Bearer ")) {
-            idToken = header.substring(7);
-        } else if (body != null && body.getFirebaseToken() != null) {
-            idToken = body.getFirebaseToken();
-        }
+@PostMapping("/delete")
+public ResponseEntity<?> deleteAccount(
+        @RequestBody(required = false) DeleteAccountRequest body,
+        @RequestHeader(value = "Authorization", required = false) String header
+) {
+    String idToken = null;
+    if (header != null && header.startsWith("Bearer ")) {
+        idToken = header.substring(7);
+    } else if (body != null && body.getFirebaseToken() != null) {
+        idToken = body.getFirebaseToken();
+    }
 
-        if (idToken == null) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Missing Firebase token"));
-        }
+    if (idToken == null) {
+        return ResponseEntity.badRequest().body(Map.of("message", "Missing Firebase token"));
+    }
 
-        FirebaseToken decoded;
-        try {
-            decoded = firebaseAuth.verifyIdToken(idToken);
-        } catch (FirebaseAuthException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Invalid Firebase token: " + e.getMessage()));
-        }
+    FirebaseToken decoded;
+    try {
+        decoded = firebaseAuth.verifyIdToken(idToken);
+    } catch (FirebaseAuthException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", "Invalid Firebase token: " + e.getMessage()));
+    }
 
-        String uid = decoded.getUid();
-        Optional<User> userOpt = userRepository.findByFirebaseUid(uid);
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", "User not found in local DB."));
-        }
+    String uid = decoded.getUid();
+    Optional<User> userOpt = userRepository.findByFirebaseUid(uid);
+    if (userOpt.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("message", "User not found in local DB."));
+    }
 
-        User user = userOpt.get();
+    User user = userOpt.get();
 
-        try {
-            firebaseAuth.deleteUser(uid);
-        } catch (FirebaseAuthException e) {
-            if (!"USER_NOT_FOUND".equals(e.getAuthErrorCode().name())) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of("message", "Failed to delete Firebase user: " + e.getMessage()));
-            }
-        }
-
-        try {
-            swipeRepository.deleteAll(swipeRepository.findByFromUser(user));
-            swipeRepository.deleteAll(swipeRepository.findByToUser(user));
-            matchRepository.deleteAll(matchRepository.findByUser1OrUser2(user, user));
-        } catch (Exception e) {
+    // Delete Firebase Auth account
+    try {
+        firebaseAuth.deleteUser(uid);
+    } catch (FirebaseAuthException e) {
+        if (!"USER_NOT_FOUND".equals(e.getAuthErrorCode().name())) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "Failed to delete user data: " + e.getMessage()));
+                    .body(Map.of("message", "Failed to delete Firebase user: " + e.getMessage()));
         }
+    }
 
+    try {
+        // 🧹 Delete matches first (they reference the user via FK)
+        List<Match> matches = matchRepository.findByUser1OrUser2(user, user);
+        matchRepository.deleteAll(matches);
+
+        // 🧹 Delete swipes (from both directions)
+        swipeRepository.deleteAll(swipeRepository.findByFromUser(user));
+        swipeRepository.deleteAll(swipeRepository.findByToUser(user));
+
+        // 🧹 Delete preference
         preferenceRepository.findByUser(user).ifPresent(preferenceRepository::delete);
 
-        try {
-            userRepository.delete(user);
-            userRepository.flush();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "Failed to delete local user: " + e.getMessage()));
-        }
+        // ✅ Finally delete the user
+        userRepository.delete(user);
+        userRepository.flush();
 
-        return ResponseEntity.ok(Map.of("message", "Account deleted successfully."));
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", "Failed to delete user account: " + e.getMessage()));
     }
+
+    return ResponseEntity.ok(Map.of("message", "Account deleted successfully."));
+}
+
 
     @GetMapping("/check-sync")
     public ResponseEntity<?> checkSync(@RequestHeader("Authorization") String authHeader) {
