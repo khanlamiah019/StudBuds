@@ -60,36 +60,54 @@ class AuthControllerTest {
         deleteReq.setFirebaseToken("good-token");
     }
 
-    @Test
-    void signUp_success() throws Exception {
-        FirebaseToken token = mock(FirebaseToken.class);
-        when(token.getUid()).thenReturn("firebase123");
-        when(firebaseAuth.verifyIdToken(anyString())).thenReturn(token);
+   @Test
+void signUp_success() throws Exception {
+    // Mock Firebase token verification
+    FirebaseToken mockToken = mock(FirebaseToken.class);
+    when(mockToken.getUid()).thenReturn("firebase123");
+    when(firebaseAuth.verifyIdToken(anyString())).thenReturn(mockToken);
 
-        User existingUser = new User();
-        existingUser.setId(88L);
-        existingUser.setEmail("test@cooper.edu");
-        when(userRepository.findByEmailIgnoreCase("test@cooper.edu")).thenReturn(Optional.of(existingUser));
-        when(userRepository.findByFirebaseUid("firebase123")).thenReturn(Optional.empty());
-        when(swipeRepository.findByFromUser(existingUser)).thenReturn(Collections.emptyList());
-        when(swipeRepository.findByToUser(existingUser)).thenReturn(Collections.emptyList());
-        when(matchRepository.findByUser1OrUser2(existingUser, existingUser)).thenReturn(Collections.emptyList());
+    // Simulate email cleanup: user with same email already exists
+    User existingUser = new User();
+    existingUser.setId(88L);
+    existingUser.setEmail("test@cooper.edu");
+    when(userRepository.findByEmailIgnoreCase("test@cooper.edu")).thenReturn(Optional.of(existingUser));
+    when(swipeRepository.findByFromUser(existingUser)).thenReturn(Collections.emptyList());
+    when(swipeRepository.findByToUser(existingUser)).thenReturn(Collections.emptyList());
+    when(matchRepository.findByUser1OrUser2(existingUser, existingUser)).thenReturn(Collections.emptyList());
 
-        User savedUser = mock(User.class);
-        when(savedUser.getId()).thenReturn(99L);
-        when(userRepository.saveAndFlush(any(User.class))).thenReturn(savedUser);
-        when(preferenceRepository.save(any(Preference.class))).thenReturn(new Preference());
+    // No UID conflict
+    when(userRepository.findByFirebaseUid("firebase123")).thenReturn(Optional.empty());
 
-        signupReq.setEmail("test@cooper.edu");
+    // Simulate saveAndFlush to return user with ID
+    when(userRepository.saveAndFlush(any(User.class))).thenAnswer(invocation -> {
+        User savedUser = invocation.getArgument(0);
+        savedUser.setId(99L); // ✅ simulate generated ID
+        return savedUser;
+    });
 
-        ResponseEntity<?> response = authController.signUp(signupReq);
+    // Preference creation
+    when(preferenceRepository.save(any(Preference.class))).thenReturn(new Preference());
 
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        Map<String, Object> body = (Map<String, Object>) response.getBody();
-        assertEquals("User registered successfully.", body.get("message"));
-        assertEquals(99L, body.get("userId"));
-    }
+    // Prepare request body
+    SignupRequest req = new SignupRequest();
+    req.setEmail("test@cooper.edu");
+    req.setPassword("123456789");
+    req.setName("Celina");
+    req.setFirebaseToken("mock-token");
+    req.setMajor("Electrical Engineering");
+    req.setYear("2025");
 
+    // Perform signup
+    ResponseEntity<?> response = authController.signUp(req);
+
+    // Assert success
+    assertEquals(HttpStatus.CREATED, response.getStatusCode());
+    Map<String, Object> body = (Map<String, Object>) response.getBody();
+    assertEquals("User registered successfully.", body.get("message"));
+    assertEquals(99L, body.get("userId")); // ✅ now passes
+}
+    
     @Test
     void login_success() throws Exception {
         FirebaseToken token = mock(FirebaseToken.class);
