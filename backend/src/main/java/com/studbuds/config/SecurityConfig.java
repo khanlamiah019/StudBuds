@@ -39,13 +39,18 @@ public class SecurityConfig {
 @Bean
 public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOriginPatterns(Arrays.asList("https://thankful-desert-098fcfa0f.6.azurestaticapps.net"));
+    
+    // ✅ Use patterns instead of setAllowedOrigins
+    configuration.setAllowedOriginPatterns(Arrays.asList(
+        "https://thankful-desert-098fcfa0f.6.azurestaticapps.net",
+        "http://localhost:3000"
+    ));
+
+    configuration.setAllowCredentials(true); // ✅ required for cookies/headers
     configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
     configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
     configuration.setExposedHeaders(Arrays.asList("Authorization"));
-
-    // 🔥 This is the missing part
-    configuration.setAllowCredentials(true);
+    configuration.setMaxAge(3600L);
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);
