@@ -14,6 +14,12 @@ public class MatchingService {
 
     @Autowired
     private PreferenceRepository preferenceRepository;
+    
+    @Autowired
+    private MatchRepository matchRepository;
+
+    @Autowired
+    private SwipeRepository swipeRepository;
 
     public void setPreferenceRepository(PreferenceRepository prefRepo) {
         this.preferenceRepository = prefRepo;
@@ -23,9 +29,26 @@ public class MatchingService {
     private static final double PARTIAL_SYNERGY_WEIGHT = 0.5;
     private static final double BOTH_SYNERGY_BONUS = 0.5;
     private static final double MATCH_THRESHOLD = 1.0;
-
+    
     public List<MatchingResultDTO> findMatches(User currentUser) {
         Preference currentPref = currentUser.getPreference();
+        // Get already matched users
+        List<Match> existingMatches = matchRepository.findAllByUser(currentUser);
+        Set<Long> matchedUserIds = existingMatches.stream()
+            .map(m -> m.getUser1().getId().equals(currentUser.getId()) ? m.getUser2().getId() : m.getUser1().getId())
+            .collect(Collectors.toSet());
+
+        // Get already swiped-on users
+        List<Swipe> swipes = swipeRepository.findByFromUser(currentUser);
+        Set<Long> swipedUserIds = swipes.stream()
+            .map(s -> s.getToUser().getId())
+            .collect(Collectors.toSet());
+
+        // Combine all IDs to exclude
+        Set<Long> excludedIds = new HashSet<>();
+        excludedIds.addAll(matchedUserIds);
+        excludedIds.addAll(swipedUserIds);
+
         if (currentPref == null) {
             return Collections.emptyList();
         }
@@ -40,7 +63,7 @@ public class MatchingService {
                 currentUser.getId()
         );
 
-        List<MatchingResultDTO> narrowResults = computeMatches(currentUser, currentDays, currentTeach, currentLearn, narrowCandidates);
+        List<MatchingResultDTO> narrowResults = computeMatches(currentUser, currentDays, currentTeach, currentLearn, narrowCandidates, excludedIds);
         if (!narrowResults.isEmpty()) {
             narrowResults.sort((a, b) -> Double.compare(b.getMatchScore(), a.getMatchScore()));
             return narrowResults;
@@ -50,22 +73,23 @@ public class MatchingService {
                 .filter(p -> !p.getUser().getId().equals(currentUser.getId()))
                 .collect(Collectors.toList());
 
-        List<MatchingResultDTO> fallbackResults = computeMatches(currentUser, currentDays, currentTeach, currentLearn, fallbackCandidates);
+        List<MatchingResultDTO> fallbackResults = computeMatches(currentUser, currentDays, currentTeach, currentLearn, fallbackCandidates, excludedIds);
         fallbackResults.sort((a, b) -> Double.compare(b.getMatchScore(), a.getMatchScore()));
         return fallbackResults;
     }
 
-    private List<MatchingResultDTO> computeMatches(User currentUser,
-                                                   Set<String> currentDays,
-                                                   Set<String> currentTeach,
-                                                   Set<String> currentLearn,
-                                                   List<Preference> candidates) {
+    private List<MatchingResultDTO> computeMatches(User currentUser, Set<String> currentDays, Set<String> currentTeach, Set<String> currentLearn, List<Preference> candidates,  Set<Long> excludedIds) {
         List<MatchingResultDTO> results = new ArrayList<>();
         for (Preference otherPref : candidates) {
             User otherUser = otherPref.getUser();
             if (otherUser.getId().equals(currentUser.getId())) {
                 continue;
             }
+            
+            if (excludedIds.contains(otherUser.getId())) {
+                continue; // Skip already swiped or matched users
+            }
+
 
             Set<String> otherDays = parseCSV(otherPref.getAvailableDays());
             Set<String> otherTeach = parseCSV(otherPref.getSubjectsToTeach());
