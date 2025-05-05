@@ -42,8 +42,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList(
             "http://127.0.0.1:3000",
             "http://localhost:3000",
-            "https://thankful-desert-098fcfa0f.6.azurestaticapps.net",
-            "https://studbuds-frontend.azurestaticapps.net" // ✅ make sure this matches your live frontend
+            "https://thankful-desert-098fcfa0f.6.azurestaticapps.net"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*")); // 👈 allow all headers for Firebase + Axios
