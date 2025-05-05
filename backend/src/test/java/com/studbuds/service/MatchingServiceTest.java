@@ -2,7 +2,11 @@ package com.studbuds.service;
 
 import com.studbuds.model.Preference;
 import com.studbuds.model.User;
+import com.studbuds.model.Match;
+import com.studbuds.model.Swipe;
 import com.studbuds.repository.PreferenceRepository;
+import com.studbuds.repository.MatchRepository;
+import com.studbuds.repository.SwipeRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -17,6 +21,12 @@ class MatchingServiceTest {
     @Mock
     private PreferenceRepository prefRepo;
 
+    @Mock
+    private MatchRepository matchRepository;
+
+    @Mock
+    private SwipeRepository swipeRepository;
+
     @InjectMocks
     private MatchingService service;
 
@@ -27,13 +37,12 @@ class MatchingServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        // Mocking preference repository
-        prefRepo = mock(PreferenceRepository.class);
-        service = new MatchingService();
-        service = spy(service);
-        service.setPreferenceRepository(prefRepo);
+        service = spy(new MatchingService());
 
-        // Setup current user and their preference
+        service.setPreferenceRepository(prefRepo);
+        org.springframework.test.util.ReflectionTestUtils.setField(service, "matchRepository", matchRepository);
+        org.springframework.test.util.ReflectionTestUtils.setField(service, "swipeRepository", swipeRepository);
+
         currentUser = new User();
         currentUser.setId(1L);
         currentUser.setMajor("Eng");
@@ -45,6 +54,10 @@ class MatchingServiceTest {
         currentPref.setSubjectsToTeach("Math");
         currentPref.setSubjectsToLearn("Physics");
         currentUser.setPreference(currentPref);
+
+        // Default stubbing for the new dependencies
+        when(matchRepository.findAllByUser(any())).thenReturn(Collections.emptyList());
+        when(swipeRepository.findByFromUser(any())).thenReturn(Collections.emptyList());
     }
 
     @Test
