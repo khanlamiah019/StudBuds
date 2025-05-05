@@ -7,6 +7,7 @@ function MatchList({ userId }) {
   const [matches, setMatches] = useState([]);
   const [error, setError] = useState('');
   const [bottomMessage, setBottomMessage] = useState('');
+  const [swipeInProgress, setSwipeInProgress] = useState(false); // NEW
   const navigate = useNavigate();
 
   const cuteAnimalEmojiMap = {
@@ -52,6 +53,9 @@ function MatchList({ userId }) {
   };
 
   const onSwipe = (direction, matchUserId) => {
+    if (swipeInProgress) return;
+    setSwipeInProgress(true);
+
     if (direction === 'right') {
       axios.post(`/api/matches/swipe?user1Id=${userId}&user2Id=${matchUserId}`)
         .then(response => {
@@ -61,10 +65,12 @@ function MatchList({ userId }) {
         .catch(err => {
           setMatches(prev => prev.filter(match => match.user.id !== matchUserId));
           setBottomMessage(err.response?.data || 'Error processing swipe.');
-        });
+        })
+        .finally(() => setSwipeInProgress(false));
     } else if (direction === 'left') {
       setMatches(prev => prev.filter(match => match.user.id !== matchUserId));
       setBottomMessage('');
+      setSwipeInProgress(false);
     }
   };
 
@@ -168,8 +174,22 @@ function MatchList({ userId }) {
                   <p><strong>Common Days:</strong> {match.commonDays.join(', ')}</p>
                   <p><strong>Common Subjects:</strong> {match.commonSubjects.join(', ')}</p>
                   <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-                    <button className="pressable" style={styles.button} onClick={() => onSwipe('left', match.user.id)}>✖️</button>
-                    <button className="pressable" style={styles.button} onClick={() => onSwipe('right', match.user.id)}>✔️</button>
+                    <button
+                      className="pressable"
+                      style={styles.button}
+                      onClick={() => onSwipe('left', match.user.id)}
+                      disabled={swipeInProgress}
+                    >
+                      ✖️
+                    </button>
+                    <button
+                      className="pressable"
+                      style={styles.button}
+                      onClick={() => onSwipe('right', match.user.id)}
+                      disabled={swipeInProgress}
+                    >
+                      ✔️
+                    </button>
                   </div>
                 </div>
               </div>
