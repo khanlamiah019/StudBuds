@@ -7,6 +7,12 @@ import { getAuth } from 'firebase/auth';
 function Profile({ userId, setUserId }) {
   const [confirmedMatches, setConfirmedMatches] = useState([]);
   const [pendingMatches, setPendingMatches] = useState([]);
+  const [page, setPage] = useState(0);
+  const pageSize = 5;
+
+  const totalPages = Math.ceil(pendingMatches.length / pageSize);
+  const visiblePending = pendingMatches.slice(page * pageSize, (page + 1) * pageSize);
+
   const [userInfo, setUserInfo] = useState({});
   const [error, setError] = useState('');
 
@@ -133,15 +139,31 @@ function Profile({ userId, setUserId }) {
       )}
 
       <h3 style={styles.sectionTitle}>Matches in Progress</h3>
-      {pendingMatches.length > 0 ? (
-        pendingMatches.map(user => (
-          <div key={user.id} style={styles.matchCard}>
-            <p style={styles.matchName}>{getUsername(user)}</p>
-          </div>
-        ))
-      ) : (
-        <p style={styles.noMatches}>No pending matches.</p>
-      )}
+{pendingMatches.length > 0 ? (
+  <>
+    {visiblePending.map(user => (
+      <div key={user.id} style={styles.matchCard}>
+        <p style={styles.matchName}>{getUsername(user)}</p>
+      </div>
+    ))}
+    {totalPages > 1 && (
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '1rem' }}>
+        <button onClick={() => setPage(p => Math.max(p - 1, 0))} disabled={page === 0}>
+          ⬅ Prev
+        </button>
+        <span style={{ alignSelf: 'center' }}>
+          Page {page + 1} of {totalPages}
+        </span>
+        <button onClick={() => setPage(p => Math.min(p + 1, totalPages - 1))} disabled={page === totalPages - 1}>
+          Next ➡
+        </button>
+      </div>
+    )}
+  </>
+) : (
+  <p style={styles.noMatches}>No pending matches.</p>
+)}
+
 
       <DeleteAccount userEmail={userEmail} setUserId={setUserId} />
     </div>
