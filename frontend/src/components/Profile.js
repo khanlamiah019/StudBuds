@@ -120,13 +120,15 @@ function Profile({ userId, setUserId }) {
       textAlign: 'center',
       marginTop: '1rem'
     },
-    pagination: {
-      display: 'flex',
-      justifyContent: 'center',
-      gap: '1rem',
-      marginTop: '1rem',
-      flexWrap: 'wrap'
-    }
+   pagination: {
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center', // ✅ vertically aligns span with buttons
+  gap: '1rem',
+  marginTop: '1rem',
+  flexWrap: 'wrap',
+  textAlign: 'center'
+}
   };
 
   return (
@@ -156,7 +158,10 @@ function Profile({ userId, setUserId }) {
               <button onClick={() => setConfirmedPage(p => Math.max(p - 1, 0))} disabled={confirmedPage === 0}>
                 ⬅ Prev
               </button>
-              <span>Page {confirmedPage + 1} of {totalConfirmedPages}</span>
+              <span style={{ textAlign: 'center' }}>
+                Page {confirmedPage + 1} of {totalConfirmedPages}
+              </span>
+
               <button onClick={() => setConfirmedPage(p => Math.min(p + 1, totalConfirmedPages - 1))} disabled={confirmedPage === totalConfirmedPages - 1}>
                 Next ➡
               </button>
@@ -180,7 +185,9 @@ function Profile({ userId, setUserId }) {
               <button onClick={() => setPendingPage(p => Math.max(p - 1, 0))} disabled={pendingPage === 0}>
                 ⬅ Prev
               </button>
-              <span>Page {pendingPage + 1} of {totalPendingPages}</span>
+              <span style={{ textAlign: 'center' }}>
+                Page {pendingPage + 1} of {totalPendingPages}
+              </span>
               <button onClick={() => setPendingPage(p => Math.min(p + 1, totalPendingPages - 1))} disabled={pendingPage === totalPendingPages - 1}>
                 Next ➡
               </button>
