@@ -51,34 +51,25 @@ public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
 
     String uid = decoded.getUid();
 
-    // Reject if UID is already registered
+    // 🔒 Reject if UID is already registered
     if (userRepository.findByFirebaseUid(uid).isPresent()) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
             .body("This Firebase account is already registered. Try logging in instead.");
     }
 
-    // Cleanup if email is already in DB from an old deleted/broken user
+    // 🧹 Cleanup if email is already in DB
     Optional<User> existingUser = userRepository.findByEmailIgnoreCase(email);
     existingUser.ifPresent(user -> {
         try {
-            // 1. Delete matches
-            matchRepository.deleteAll(matchRepository.findByUser1OrUser2(user, user));
-
-            // 2. Delete swipes
             swipeRepository.deleteAll(swipeRepository.findByFromUser(user));
             swipeRepository.deleteAll(swipeRepository.findByToUser(user));
-
-            // 3. Delete preference
+            matchRepository.deleteAll(matchRepository.findByUser1OrUser2(user, user));
             preferenceRepository.findByUser(user).ifPresent(preferenceRepository::delete);
-
-            // 4. Delete user
             userRepository.delete(user);
-            userRepository.flush();
-
-            System.out.println("[🧹] Cleaned up old user with email: " + email);
+            userRepository.flush(); // ✅ force DB update before recreating
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("Failed to clean up existing user with this email: " + e.getMessage());
+            throw new RuntimeException("Failed to clean up existing user with this email.");
         }
     });
 
@@ -90,9 +81,8 @@ public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
     user.setCreatedAt(LocalDateTime.now());
     user.setMajor(req.getMajor());
     user.setYear(req.getYear());
-    userRepository.save(user);
+    userRepository.saveAndFlush(user);  // ✅ ensures user is immediately persisted
 
-    // ✅ Create default preference
     Preference pref = new Preference();
     pref.setUser(user);
     pref.setAvailableDays("");
@@ -106,40 +96,42 @@ public ResponseEntity<?> signUp(@RequestBody SignupRequest req) {
     return ResponseEntity.status(HttpStatus.CREATED).body(resp);
 }
 
+
     @PostMapping("/login")
-    public ResponseEntity<?> login(
-            @RequestBody(required = false) LoginRequest body,
-            @RequestHeader(value = "Authorization", required = false) String header
-    ) {
-        String idToken = null;
-        if (header != null && header.startsWith("Bearer ")) {
-            idToken = header.substring(7);
-        } else if (body != null && body.getFirebaseToken() != null) {
-            idToken = body.getFirebaseToken();
-        }
+public ResponseEntity<?> login(
+    @RequestBody(required = false) LoginRequest body,
+    @RequestHeader(value = "Authorization", required = false) String header
+) {
+    String idToken = null;
 
-        if (idToken == null) {
-            return ResponseEntity.badRequest().body("Missing Firebase token");
-        }
-
-        try {
-            FirebaseToken decoded = firebaseAuth.verifyIdToken(idToken);
-            String uid = decoded.getUid();
-
-            Optional<User> userOpt = userRepository.findByFirebaseUid(uid);
-            if (userOpt.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No local account found. Please sign up first.");
-            }
-
-            Map<String, Object> resp = new HashMap<>();
-            resp.put("message", "Login successful.");
-            resp.put("userId", userOpt.get().getId());
-            return ResponseEntity.ok(resp);
-
-        } catch (FirebaseAuthException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Firebase token.");
-        }
+    if (header != null && header.startsWith("Bearer ")) {
+        idToken = header.substring(7);
+    } else if (body != null && body.getFirebaseToken() != null) {
+        idToken = body.getFirebaseToken();
     }
+
+    if (idToken == null) {
+        return ResponseEntity.badRequest().body("Missing Firebase token");
+    }
+
+    try {
+        FirebaseToken decoded = firebaseAuth.verifyIdToken(idToken);
+        String uid = decoded.getUid();
+
+        Optional<User> userOpt = userRepository.findByFirebaseUid(uid);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No local account found. Please sign up first.");
+        }
+
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("message", "Login successful.");
+        resp.put("userId", userOpt.get().getId());
+        return ResponseEntity.ok(resp);
+
+    } catch (FirebaseAuthException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Firebase token.");
+    }
+}
 
 @PostMapping("/delete")
 public ResponseEntity<?> deleteAccount(
