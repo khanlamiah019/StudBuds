@@ -20,6 +20,9 @@ import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import com.studbuds.repository.SwipeRepository;
+import com.studbuds.repository.MatchRepository;
+
 
 import java.util.Map;
 import java.util.Optional;
