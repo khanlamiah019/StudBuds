@@ -2,7 +2,11 @@ package com.studbuds.service;
 
 import com.studbuds.model.Preference;
 import com.studbuds.model.User;
+import com.studbuds.model.Match;
+import com.studbuds.model.Swipe;
 import com.studbuds.repository.PreferenceRepository;
+import com.studbuds.repository.MatchRepository;
+import com.studbuds.repository.SwipeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
