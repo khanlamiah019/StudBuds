@@ -7,14 +7,24 @@ import { getAuth } from 'firebase/auth';
 function Profile({ userId, setUserId }) {
   const [confirmedMatches, setConfirmedMatches] = useState([]);
   const [pendingMatches, setPendingMatches] = useState([]);
-  const [page, setPage] = useState(0);
-  const pageSize = 5;
-
-  const totalPages = Math.ceil(pendingMatches.length / pageSize);
-  const visiblePending = pendingMatches.slice(page * pageSize, (page + 1) * pageSize);
-
   const [userInfo, setUserInfo] = useState({});
   const [error, setError] = useState('');
+
+  const [confirmedPage, setConfirmedPage] = useState(0);
+  const confirmedPageSize = 5;
+  const totalConfirmedPages = Math.ceil(confirmedMatches.length / confirmedPageSize);
+  const visibleConfirmed = confirmedMatches.slice(
+    confirmedPage * confirmedPageSize,
+    (confirmedPage + 1) * confirmedPageSize
+  );
+
+  const [pendingPage, setPendingPage] = useState(0);
+  const pendingPageSize = 5;
+  const totalPendingPages = Math.ceil(pendingMatches.length / pendingPageSize);
+  const visiblePending = pendingMatches.slice(
+    pendingPage * pendingPageSize,
+    (pendingPage + 1) * pendingPageSize
+  );
 
   const auth = getAuth();
   const userEmail = auth.currentUser ? auth.currentUser.email : '';
@@ -31,7 +41,6 @@ function Profile({ userId, setUserId }) {
           setError(err.response?.data || 'Error fetching profile matches.');
         });
 
-      // Fetch User Info
       axios.get(`/api/user/${userId}`)
         .then(response => {
           setUserInfo(response.data);
@@ -45,17 +54,15 @@ function Profile({ userId, setUserId }) {
 
   const getUsername = (user) => {
     if (user) {
-      if (user.name && user.name.trim() !== "") {
-        return user.name;
-      } else if (user.email) {
-        return user.email.split('@')[0];
-      }
+      if (user.name && user.name.trim() !== "") return user.name;
+      if (user.email) return user.email.split('@')[0];
     }
     return "Unknown User";
   };
 
   const styles = {
     container: {
+      maxWidth: '90%',
       maxWidth: '700px',
       margin: '2rem auto',
       padding: '2rem',
@@ -68,6 +75,7 @@ function Profile({ userId, setUserId }) {
     heading: {
       textAlign: 'center',
       marginBottom: '1.5rem',
+      fontSize: 'clamp(1.5rem, 2.5vw, 2rem)'
     },
     sectionTitle: {
       marginTop: '2rem',
@@ -75,7 +83,8 @@ function Profile({ userId, setUserId }) {
       color: '#2c6e6a',
       borderBottom: '2px solid #5ccdc1',
       display: 'inline-block',
-      paddingBottom: '0.3rem'
+      paddingBottom: '0.3rem',
+      fontSize: 'clamp(1.2rem, 2vw, 1.5rem)'
     },
     userInfoCard: {
       backgroundColor: '#e0f7fa',
@@ -110,6 +119,13 @@ function Profile({ userId, setUserId }) {
       color: 'red',
       textAlign: 'center',
       marginTop: '1rem'
+    },
+    pagination: {
+      display: 'flex',
+      justifyContent: 'center',
+      gap: '1rem',
+      marginTop: '1rem',
+      flexWrap: 'wrap'
     }
   };
 
@@ -128,42 +144,52 @@ function Profile({ userId, setUserId }) {
 
       <h3 style={styles.sectionTitle}>People Matched With</h3>
       {confirmedMatches.length > 0 ? (
-        confirmedMatches.map(user => (
-          <div key={user.id} style={styles.matchCard}>
-            <p style={styles.matchName}>{getUsername(user)}</p>
-            <p style={styles.matchEmail}>{user.email}</p>
-          </div>
-        ))
+        <>
+          {visibleConfirmed.map(user => (
+            <div key={user.id} style={styles.matchCard}>
+              <p style={styles.matchName}>{getUsername(user)}</p>
+              <p style={styles.matchEmail}>{user.email}</p>
+            </div>
+          ))}
+          {totalConfirmedPages > 1 && (
+            <div style={styles.pagination}>
+              <button onClick={() => setConfirmedPage(p => Math.max(p - 1, 0))} disabled={confirmedPage === 0}>
+                ⬅ Prev
+              </button>
+              <span>Page {confirmedPage + 1} of {totalConfirmedPages}</span>
+              <button onClick={() => setConfirmedPage(p => Math.min(p + 1, totalConfirmedPages - 1))} disabled={confirmedPage === totalConfirmedPages - 1}>
+                Next ➡
+              </button>
+            </div>
+          )}
+        </>
       ) : (
         <p style={styles.noMatches}>No confirmed matches yet.</p>
       )}
 
       <h3 style={styles.sectionTitle}>Matches in Progress</h3>
-{pendingMatches.length > 0 ? (
-  <>
-    {visiblePending.map(user => (
-      <div key={user.id} style={styles.matchCard}>
-        <p style={styles.matchName}>{getUsername(user)}</p>
-      </div>
-    ))}
-    {totalPages > 1 && (
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '1rem' }}>
-        <button onClick={() => setPage(p => Math.max(p - 1, 0))} disabled={page === 0}>
-          ⬅ Prev
-        </button>
-        <span style={{ alignSelf: 'center' }}>
-          Page {page + 1} of {totalPages}
-        </span>
-        <button onClick={() => setPage(p => Math.min(p + 1, totalPages - 1))} disabled={page === totalPages - 1}>
-          Next ➡
-        </button>
-      </div>
-    )}
-  </>
-) : (
-  <p style={styles.noMatches}>No pending matches.</p>
-)}
-
+      {pendingMatches.length > 0 ? (
+        <>
+          {visiblePending.map(user => (
+            <div key={user.id} style={styles.matchCard}>
+              <p style={styles.matchName}>{getUsername(user)}</p>
+            </div>
+          ))}
+          {totalPendingPages > 1 && (
+            <div style={styles.pagination}>
+              <button onClick={() => setPendingPage(p => Math.max(p - 1, 0))} disabled={pendingPage === 0}>
+                ⬅ Prev
+              </button>
+              <span>Page {pendingPage + 1} of {totalPendingPages}</span>
+              <button onClick={() => setPendingPage(p => Math.min(p + 1, totalPendingPages - 1))} disabled={pendingPage === totalPendingPages - 1}>
+                Next ➡
+              </button>
+            </div>
+          )}
+        </>
+      ) : (
+        <p style={styles.noMatches}>No pending matches.</p>
+      )}
 
       <DeleteAccount userEmail={userEmail} setUserId={setUserId} />
     </div>
