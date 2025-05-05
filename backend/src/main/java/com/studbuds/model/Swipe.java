@@ -1,6 +1,8 @@
 package com.studbuds.model;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Table(name = "swipes")
@@ -9,14 +11,18 @@ public class Swipe {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @ManyToOne
     @JoinColumn(name = "from_user_id", nullable = false)
     private User fromUser;
-    
+
     @ManyToOne
     @JoinColumn(name = "to_user_id", nullable = false)
     private User toUser;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
     public Swipe() {}
 
@@ -42,5 +48,9 @@ public class Swipe {
 
     public void setToUser(User toUser) {
         this.toUser = toUser;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 }
