@@ -2,6 +2,7 @@ package com.studbuds.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -26,11 +27,11 @@ public class SecurityConfig {
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
             .authorizeRequests()
-                .antMatchers("/api/test/**").authenticated()
-                .antMatchers("/api/auth/signup", "/api/auth/login").permitAll()
+                .antMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 👈 allow preflight CORS
+                .antMatchers("/api/auth/signup", "/api/auth/login", "/api/auth/check-sync").permitAll()
                 .anyRequest().authenticated()
-                .and()
-                .addFilterBefore(new FirebaseAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+            .and()
+            .addFilterBefore(new FirebaseAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -41,10 +42,11 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList(
             "http://127.0.0.1:3000",
             "http://localhost:3000",
-            "https://thankful-desert-098fcfa0f.6.azurestaticapps.net"
+            "https://thankful-desert-098fcfa0f.6.azurestaticapps.net",
+            "https://studbuds-frontend.azurestaticapps.net" // ✅ make sure this matches your live frontend
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
+        configuration.setAllowedHeaders(Arrays.asList("*")); // 👈 allow all headers for Firebase + Axios
         configuration.setExposedHeaders(Arrays.asList("Authorization"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
