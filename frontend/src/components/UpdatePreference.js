@@ -391,7 +391,7 @@ export default function UpdatePreference({ userId }) {
             🎯 Stay under 14 subjects to match with the best partners!
           </p>
           {warning && (
-            <p style={{ color: 'red', textAlign: 'center', marginBottom: '1rem' }}>
+            <p style={{ color: 'orange', textAlign: 'center', marginBottom: '1rem' }}>
               {warning}
             </p>
           )}
