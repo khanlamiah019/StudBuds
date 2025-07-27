@@ -4,6 +4,13 @@
 
 ---
 
+## 🌐Developers
+
+Meghan Notkin, Lamiah Khan, Megan Vo, and Grace Tseng
+
+
+---
+
 ## 🌟 Features  
 
 - **Secure Authentication:** Firebase-powered signup/login (restricted to `@cooper.edu` emails).
